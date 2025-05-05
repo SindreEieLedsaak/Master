@@ -60,22 +60,32 @@ def multi_file_editor(initial_files=None):
     col1, col2 = st.columns([3, 1])
     
     with col1:
-        tabs = st.tabs(list(files.keys()))
+        # Allow selecting the active file using radio buttons
+        file_names = list(files.keys())
+        selected_file = st.radio("Select file to edit or run:", file_names, 
+                               index=file_names.index(st.session_state.active_file) if st.session_state.active_file in file_names else 0,
+                               horizontal=True)
         
-        # Show the active file's content in the current tab
-        for i, (filename, content) in enumerate(files.items()):
-            with tabs[i]:
-                new_content = st.text_area(
-                    f"Editing {filename}", 
-                    value=content,
-                    height=400,
-                    key=f"editor_{filename}"
-                )
-                if new_content != content:
-                    save_file(filename, new_content)
+        # Update active file when selection changes
+        if selected_file != st.session_state.active_file:
+            st.session_state.active_file = selected_file
+        
+        # Show the active file's content in an editor
+        if selected_file in files:
+            new_content = st.text_area(
+                f"Editing {selected_file}", 
+                value=files[selected_file],
+                height=400,
+                key=f"editor_{selected_file}"
+            )
+            if new_content != files[selected_file]:
+                save_file(selected_file, new_content)
     
     with col2:
         st.subheader("File Operations")
+        
+        # Display the currently active file
+        st.info(f"Active file: **{st.session_state.active_file}**")
         
         # New file creation
         new_filename = st.text_input("New file name", key="new_file_name")
@@ -101,9 +111,10 @@ def multi_file_editor(initial_files=None):
     
     # Add Pyodide execution component
     st.subheader("Code Execution")
+    st.write(f"Running file: **{st.session_state.active_file}**")
     if st.button("Run in Browser (Pyodide)"):
         pyodide_runner(files)
-
+        
 def pyodide_runner(files):
     """Run the code using Pyodide"""
     # Convert files to JSON for JavaScript

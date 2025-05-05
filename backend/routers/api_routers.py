@@ -4,9 +4,21 @@ import subprocess
 from backend.analyzer.code_analyzer import CodeAnalyzer
 from backend.models.promt import AssistantRequest, AssistantResponse
 from backend.ai.assistant import Assistant
+from backend.gitlab.gitlab_service import GitlabService
+from backend.analyzer.project_analyzer import ProjectAnalyzer
 
 router = APIRouter()
+gitlab_service = GitlabService()
+project_analyzer = ProjectAnalyzer()
 
+class GitLabUserRequest(BaseModel):
+    student_id: str
+    gitlab_username: str
+
+class AnalysisRequest(BaseModel):
+    student_id: str
+    
+    
 class CodeInput(BaseModel):
     code: str
 
@@ -40,3 +52,40 @@ async def get_assistant_response(request: AssistantRequest):
     from app import assistant
     response = assistant.get_assistant_response(request.prompt)
     return AssistantResponse(response=response)
+
+
+@router.post("/gitlab/fetch-projects")
+async def fetch_student_projects(request: GitLabUserRequest):
+    """Fetch and store all GitLab projects for a student"""
+    try:
+        result = gitlab_service.store_projects_for_student(
+            request.student_id, 
+            request.gitlab_username
+        )
+        if "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/gitlab/analyze-projects")
+async def analyze_student_projects(request: AnalysisRequest):
+    """Analyze all stored projects for a student"""
+    try:
+        result = project_analyzer.analyze_student_projects(request.student_id)
+        if "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/gitlab/student/{student_id}/projects")
+async def get_student_projects(student_id: str):
+    """Get all stored projects for a student"""
+    try:
+        from backend.config.db_config import get_student_collection
+        collection = get_student_collection(student_id)
+        projects = list(collection.find({}, {'_id': 0}))
+        return {"student_id": student_id, "projects": projects}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
