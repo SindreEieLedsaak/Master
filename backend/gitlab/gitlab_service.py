@@ -1,8 +1,9 @@
+import base64
 import gitlab
 import os
 from dotenv import load_dotenv
 from datetime import datetime
-from backend.config.db_config import get_student_collection
+
 
 load_dotenv()
 
@@ -13,7 +14,7 @@ class GitlabService:
     def __init__(self):
         self.gl = gitlab.Gitlab(GITLAB_URL, private_token=GITLAB_TOKEN)
     
-    def get_user_projects(self, gitlab_username):
+    def get_user_projects(self):
         """
         Get all projects for a specific GitLab username
         
@@ -23,20 +24,16 @@ class GitlabService:
         Returns:
             list: List of project metadata and stats
         """
-        try:
-            # Get user by username
-            users = self.gl.users.list(username=gitlab_username)
-            if not users:
-                return {"error": f"User {gitlab_username} not found"}
-            
-            user = users[0]
-            user_id = user.id
-            
-            # Get projects for the user
-            projects = self.gl.users.get(user_id).projects.list(all=True)
-            return [self._extract_project_data(project) for project in projects]
-        except Exception as e:
-            return {"error": str(e)}
+
+        data = []
+        owned_projects = self.gl.projects.list(owned=True, all=True)
+        for proj in owned_projects:
+            # print(self.get_project_files(proj.id))
+            # Extract relevant data from the project
+            project_data = self._extract_project_data(proj)
+            data.append(project_data)
+            # Store or process the project data as needed
+        return data
     
     def _extract_project_data(self, project):
         """Extract relevant data from a GitLab project"""
@@ -114,4 +111,53 @@ class GitlabService:
             "success": True,
             "message": f"Stored {len(projects)} projects for student {student_id}",
             "project_count": len(projects)
+        }
+        
+    def get_file_content(self, project_id: int, file_path: str, ref: str = "main") -> str | None:
+        """Fetch a single file's text content (decoded) from a project."""
+        try:
+            project = self.gl.projects.get(project_id)
+            f = project.files.get(file_path=file_path, ref=ref)
+            # content is base64-encoded
+            return base64.b64decode(f.content).decode("utf-8")
+        except Exception:
+            return None
+
+    def get_project_files(self, project_id: int, ref: str = "main") -> dict[str, str]:
+        """
+        Walk the repo_tree, fetch text files only, return {path:content}.
+        """
+        project = self.gl.projects.get(project_id)
+        files = {}
+        print(project.repository_tree(recursive=True, ref=ref))
+        for item in project.repository_tree(recursive=True, ref=ref):
+            if item["type"] == "blob":
+                path = item["path"]
+                # simple filter on extension
+                if any(path.endswith(ext) for ext in (".py", ".js", ".md", ".txt", ".json", ".yaml")):
+                    content = self.get_file_content(project_id, path, ref)
+                    if content is not None:
+                        files[path] = content
+        return files
+
+    def store_projects_for_student(self,
+                                   student_id: str,
+                                   gitlab_username: str,
+                                   ref: str = "main") -> dict:
+        projects = self.get_user_projects(gitlab_username)
+        student_collection = get_student_collection(student_id)
+
+        for proj in projects:
+            pid = proj["project_id"]
+            # fetch & attach file contents
+            proj["files"] = self.get_project_files(pid, ref)
+            student_collection.update_one(
+                {"project_id": pid},
+                {"$set": proj},
+                upsert=True
+            )
+
+        return {
+            "success": True,
+            "stored": len(projects)
         }

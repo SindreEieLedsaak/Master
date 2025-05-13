@@ -1,7 +1,7 @@
 import streamlit as st
 from components.code_editor import multi_file_editor, get_file_contents, get_current_files
-from services.ai_service import get_guidance
-from services.code_service import analyze_code, run_code_server
+
+from services.code_service import analyze_code, run_code_server, get_guidance
 from utils.ui_helpers import show_warning, show_code_output
 from components.gitlab import gitlab_projects_component
 def main():
