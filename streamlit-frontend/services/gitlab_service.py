@@ -10,6 +10,7 @@ def fetch_gitlab_projects(token):
             GITLAB_FETCH_URL,
             json={"gitlab_token": token}
         )
+        print(response.json())
         response.raise_for_status()
         data = response.json()
         if response.status_code == 200:

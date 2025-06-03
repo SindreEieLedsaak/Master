@@ -16,33 +16,26 @@ class GitlabService:
     
     def get_user_projects(self):
         """
-        Get all projects for a specific GitLab username
-        
-        Args:
-            gitlab_username (str): GitLab username
-            
-        Returns:
-            list: List of project metadata and stats
+        Get all projects for the authenticated GitLab user.
         """
-
         data = []
         owned_projects = self.gl.projects.list(owned=True, all=True)
         for proj in owned_projects:
-            # print(self.get_project_files(proj.id))
-            # Extract relevant data from the project
             project_data = self._extract_project_data(proj)
             data.append(project_data)
-            # Store or process the project data as needed
         return data
     
     def _extract_project_data(self, project):
         """Extract relevant data from a GitLab project"""
-        # Get additional information about the project
         project_obj = self.gl.projects.get(project.id)
         
-        # Basic project metadata
+        # Determine the default branch or use a sensible default like "main"
+        default_ref = getattr(project_obj, 'default_branch', 'main')
+
         data = {
             "project_id": project.id,
+            # Ensure get_project_files is called with the determined ref
+            "files" : self.get_project_files(project.id, ref=default_ref), 
             "name": project.name,
             "description": project.description,
             "url": project.web_url,
@@ -129,15 +122,25 @@ class GitlabService:
         """
         project = self.gl.projects.get(project_id)
         files = {}
-        print(project.repository_tree(recursive=True, ref=ref))
-        for item in project.repository_tree(recursive=True, ref=ref):
-            if item["type"] == "blob":
-                path = item["path"]
-                # simple filter on extension
-                if any(path.endswith(ext) for ext in (".py", ".js", ".md", ".txt", ".json", ".yaml")):
-                    content = self.get_file_content(project_id, path, ref)
-                    if content is not None:
-                        files[path] = content
+        try:
+            # Add all=True to fetch all items from the repository tree
+            tree_items = project.repository_tree(recursive=True, ref=ref, all=True)
+            # You can remove the print statement below if you no longer need it for debugging
+            # print(tree_items) 
+            for item in tree_items:
+                if item["type"] == "blob":
+                    path = item["path"]
+                    # simple filter on extension
+                    if any(path.endswith(ext) for ext in (".py", ".js", ".md", ".txt", ".json", ".yaml", ".java")): # Added .java based on your log
+                        content = self.get_file_content(project_id, path, ref)
+                        if content is not None:
+                            files[path] = content
+        except gitlab.exceptions.GitlabGetError as e:
+            print(f"Error getting project {project_id} when trying to list files: {e}")
+        except gitlab.exceptions.GitlabListError as e: # Catching potential error from repository_tree
+            print(f"Error listing repository tree for project {project_id} (ref: {ref}): {e}")
+        except Exception as e:
+            print(f"An unexpected error occurred in get_project_files for project {project_id}: {e}")
         return files
 
     def store_projects_for_student(self,

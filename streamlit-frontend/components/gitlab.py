@@ -22,6 +22,8 @@ def gitlab_projects_component():
             else:
                 with st.spinner("Fetching projects from GitLab..."):
                     data = fetch_gitlab_projects(token=token)
+                    print(data)
+                    
                         
     
     with tab2:

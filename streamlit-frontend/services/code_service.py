@@ -51,7 +51,9 @@ def get_guidance(prompt):
         str: AI guidance or error message
     """
     try:
+        print(f"Sending prompt to backend: {prompt}")
         payload = {"prompt": prompt}
+
         response = requests.post(ASSISTANT_URL, json=payload)
         response.raise_for_status()
         data = response.json()
