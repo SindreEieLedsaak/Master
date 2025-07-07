@@ -1,4 +1,4 @@
-from groq import Groq
+
 from dotenv import load_dotenv
 import os
 from backend.models.promt import system_prompt

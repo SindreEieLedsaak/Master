@@ -3,6 +3,8 @@ import gitlab
 import os
 from dotenv import load_dotenv
 from datetime import datetime
+from ..mongodb.MongoDB import get_collection, get_db_connection
+from pymongo.collection import Collection
 
 
 load_dotenv()
@@ -73,7 +75,7 @@ class GitlabService:
         
         return data
     
-    def store_projects_for_student(self, student_id, gitlab_username):
+    def store_projects_for_student(self, student_id: str):
         """
         Fetch and store all GitLab projects for a student
         
@@ -84,12 +86,12 @@ class GitlabService:
         Returns:
             dict: Result of the operation with count of stored projects
         """
-        projects = self.get_user_projects(gitlab_username)
+        projects = self.get_user_projects()
         if "error" in projects:
             return projects
         
         # Get the MongoDB collection for this student
-        student_collection = get_student_collection(student_id)
+        student_collection = self.get_student_collection(student_id)
         
         # Store each project
         for project in projects:
@@ -135,32 +137,18 @@ class GitlabService:
                         content = self.get_file_content(project_id, path, ref)
                         if content is not None:
                             files[path] = content
-        except gitlab.exceptions.GitlabGetError as e:
+        except gitlab.GitlabGetError as e:
             print(f"Error getting project {project_id} when trying to list files: {e}")
-        except gitlab.exceptions.GitlabListError as e: # Catching potential error from repository_tree
+        except gitlab.GitlabListError as e: # Catching potential error from repository_tree
             print(f"Error listing repository tree for project {project_id} (ref: {ref}): {e}")
         except Exception as e:
             print(f"An unexpected error occurred in get_project_files for project {project_id}: {e}")
+            
+        
         return files
 
-    def store_projects_for_student(self,
-                                   student_id: str,
-                                   gitlab_username: str,
-                                   ref: str = "main") -> dict:
-        projects = self.get_user_projects(gitlab_username)
-        student_collection = get_student_collection(student_id)
-
-        for proj in projects:
-            pid = proj["project_id"]
-            # fetch & attach file contents
-            proj["files"] = self.get_project_files(pid, ref)
-            student_collection.update_one(
-                {"project_id": pid},
-                {"$set": proj},
-                upsert=True
-            )
-
-        return {
-            "success": True,
-            "stored": len(projects)
-        }
+    def get_student_collection(self, student_id: str) -> Collection:
+        db = get_db_connection("students")
+        collection = get_collection(student_id, db)
+        return collection
+        
