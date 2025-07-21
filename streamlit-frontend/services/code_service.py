@@ -1,5 +1,5 @@
 import requests
-from services.config import ANALYZE_URL, RUN_PYTHON_URL
+from utils.config import ANALYZE_URL, RUN_PYTHON_URL, ASSISTANT_URL
 
 def analyze_code(code):
     """
@@ -36,5 +36,27 @@ def run_code_server(code):
         response.raise_for_status()
         data = response.json()
         return data.get("output", data.get("response", "No output returned."))
+    except Exception as e:
+        return f"Error communicating with backend: {str(e)}"
+
+
+def get_guidance(prompt):
+    """
+    Get AI guidance for the given prompt
+    
+    Args:
+        prompt (str): User prompt or code
+    
+    Returns:
+        str: AI guidance or error message
+    """
+    try:
+        print(f"Sending prompt to backend: {prompt}")
+        payload = {"prompt": prompt}
+
+        response = requests.post(ASSISTANT_URL, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("response", "No guidance returned.")
     except Exception as e:
         return f"Error communicating with backend: {str(e)}"

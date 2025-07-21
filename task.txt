@@ -4,5 +4,5 @@ The errors could be syntax errors, semantic errors, or logical errors. The tool 
 Based on the history of the user, the tool will also provide suggestions on what types of problems the user should try to solve next.
 The tool will also provide a list of resources that the user can use to learn more about programming.
 It will also feature an AI model to help the user understand the concepts better. The model will be able to answer questions and provide explanations dynamic to the users code.
-The model is preset to answer questions about the code. It should work as a guidens for the user to understand the code better, it should not givce the user the answer to the problem,
+The model is preset to answer questions about the code. It should work as a guidens for the user to understand the code better, it should not give the user the answer to the problem,
 but rather help the user understand the problem and how to solve it.

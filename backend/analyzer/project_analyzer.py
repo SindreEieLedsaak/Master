@@ -1,4 +1,3 @@
-from backend.config.db_config import get_student_collection
 from backend.analyzer.code_analyzer import CodeAnalyzer
 import base64
 import gitlab
