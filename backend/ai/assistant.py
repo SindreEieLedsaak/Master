@@ -9,12 +9,12 @@ import openai
 class Assistant:
     def __init__(self):
         load_dotenv()
-        self.client = openai_client = openai.AzureOpenAI(
+        self.client  = openai.AzureOpenAI(
         azure_endpoint =  "https://gw-uib.intark.uh-it.no",
         azure_deployment = "gpt-4.1-mini",
         api_key = "unused", # but still required by the library
         default_headers = {
-            "X-Gravitee-API-Key": os.getenv("OPENAI_GRAVITEE_KEY"),
+            "X-Gravitee-API-Key": os.getenv("OPENAI_GRAVITEE_KEY") or ""
         },
         api_version = "2024-10-21",
         )   
@@ -32,7 +32,7 @@ class Assistant:
                 ],
                 max_tokens = 1000
             )
-            return response.choices[0].message.content.strip()
+            return response.choices[0].message.content.strip() or ""
         except Exception as e:
             print(f"Error getting assistant response: {e}")
             return "An error occurred while processing your request."

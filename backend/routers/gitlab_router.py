@@ -4,12 +4,12 @@ from backend.gitlab.gitlab_service import GitlabService
 router = APIRouter()
 
 @router.post("/students/{student_id}/gitlab-projects", tags=["GitLab"])
-async def store_student_projects(student_id: str, gitlab_service: GitlabService = Depends(GitlabService)):
+async def store_student_projects(student_id: str, gitlab_username: str, gitlab_service: GitlabService = Depends(GitlabService)):
     """
     Fetches and stores all GitLab projects for a given student.
     """
     try:
-        result = gitlab_service.store_projects_for_student(student_id)
+        result = gitlab_service.store_projects_for_student(student_id, gitlab_username)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

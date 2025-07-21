@@ -6,6 +6,7 @@ from backend.analyzer.code_analyzer import CodeAnalyzer
 from backend.models.promt import AssistantRequest, AssistantResponse
 from backend.ai.assistant import Assistant
 from backend.routers.gitlab_router import router as gitlab_router
+from backend.routers.student_router import router as student_router
 
 
 
@@ -15,7 +16,7 @@ router = APIRouter(prefix="/api")
 assistant = Assistant()
 
 router.include_router(gitlab_router, prefix="/gitlab")
-
+router.include_router(student_router)
 
 
 class AnalysisRequest(BaseModel):

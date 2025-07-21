@@ -16,16 +16,26 @@ class GitlabService:
     def __init__(self):
         self.gl = gitlab.Gitlab(GITLAB_URL, private_token=GITLAB_TOKEN)
     
-    def get_user_projects(self):
+    def get_user_projects(self, gitlab_username: str):
         """
-        Get all projects for the authenticated GitLab user.
+        Get all projects for a specific GitLab user.
         """
-        data = []
-        owned_projects = self.gl.projects.list(owned=True, all=True)
-        for proj in owned_projects:
-            project_data = self._extract_project_data(proj)
-            data.append(project_data)
-        return data
+        try:
+            users = self.gl.users.list(username=gitlab_username, iterator=True)
+            user_list = list(users)
+            if not user_list:
+                return {"error": f"User '{gitlab_username}' not found"}
+            
+            user = self.gl.users.get(user_list[0].id)
+            projects = user.projects.list(all=True)
+            
+            data = []
+            for proj in projects:
+                project_data = self._extract_project_data(proj)
+                data.append(project_data)
+            return data
+        except Exception as e:
+            return {"error": str(e)}
     
     def _extract_project_data(self, project):
         """Extract relevant data from a GitLab project"""
@@ -75,7 +85,7 @@ class GitlabService:
         
         return data
     
-    def store_projects_for_student(self, student_id: str):
+    def store_projects_for_student(self, student_id: str, gitlab_username: str):
         """
         Fetch and store all GitLab projects for a student
         
@@ -86,8 +96,8 @@ class GitlabService:
         Returns:
             dict: Result of the operation with count of stored projects
         """
-        projects = self.get_user_projects()
-        if "error" in projects:
+        projects = self.get_user_projects(gitlab_username)
+        if isinstance(projects, dict) and "error" in projects:
             return projects
         
         # Get the MongoDB collection for this student
@@ -95,12 +105,13 @@ class GitlabService:
         
         # Store each project
         for project in projects:
-            # Use GitLab project ID as document ID for upsert
-            student_collection.update_one(
-                {"project_id": project["project_id"]},
-                {"$set": project},
-                upsert=True
-            )
+            if isinstance(project, dict):
+                # Use GitLab project ID as document ID for upsert
+                student_collection.update_one(
+                    {"project_id": project["project_id"]},
+                    {"$set": project},
+                    upsert=True
+                )
         
         return {
             "success": True,
