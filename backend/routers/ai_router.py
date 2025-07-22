@@ -4,7 +4,7 @@ from backend.analyzer.ai_project_analyzer import AIProjectAnalyzer
 router = APIRouter()
 
 @router.post("/ai-analyze-student-projects/{student_id}")
-async def analyze_student_projects_with_ai(student_id: str):
+async def analyze_student_projects(student_id: str):
     """
     Triggers an AI analysis of a student's projects and stores the result.
     """
@@ -16,7 +16,7 @@ async def analyze_student_projects_with_ai(student_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/ai-suggest-projects/{student_id}")
-async def suggest_projects_with_ai(student_id: str):
+async def suggest_projects(student_id: str):
     """
     Generates new project suggestions based on the latest AI analysis.
     """
@@ -30,7 +30,7 @@ async def suggest_projects_with_ai(student_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/ai-get-suggestions/{student_id}")
-async def get_suggestions_with_ai(student_id: str):
+async def get_suggestions(student_id: str):
     """
     Retrieves previously generated project suggestions.
     """
@@ -42,7 +42,7 @@ async def get_suggestions_with_ai(student_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/ai-delete-all-suggestions/{student_id}")
-async def delete_all_suggestions_with_ai(student_id: str):
+async def delete_all_suggestions(student_id: str):
     """
     Deletes all previously generated project suggestions.
     """
@@ -54,7 +54,7 @@ async def delete_all_suggestions_with_ai(student_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/ai-delete-suggestion/{student_id}/{suggestion_id}")
-async def delete_suggestion_with_ai(student_id: str, suggestion_id: str):
+async def delete_suggestion(student_id: str, suggestion_id: str):
     """
     Deletes a previously generated project suggestion.
     """
