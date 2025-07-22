@@ -3,6 +3,7 @@ import base64
 import gitlab
 import os
 from dotenv import load_dotenv
+from backend.mongodb.MongoDB import get_collection, get_db_connection
 
 load_dotenv()
 
@@ -13,7 +14,7 @@ class ProjectAnalyzer:
     def __init__(self):
         self.gl = gitlab.Gitlab(GITLAB_URL, private_token=GITLAB_TOKEN)
         self.code_analyzer = CodeAnalyzer()
-    
+        self.db = get_db_connection("students")
     def analyze_student_projects(self, student_id):
         """
         Analyze all projects for a student and generate overall coding metrics
@@ -24,7 +25,7 @@ class ProjectAnalyzer:
         Returns:
             dict: Analysis results
         """
-        collection = get_student_collection(student_id)
+        collection = get_collection(student_id, self.db)
         projects = list(collection.find({}))
         
         if not projects:
