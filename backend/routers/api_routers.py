@@ -1,15 +1,15 @@
 from contextlib import asynccontextmanager
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 import subprocess
 from backend.analyzer.code_analyzer import CodeAnalyzer
+from backend.analyzer.project_analyzer import ProjectAnalyzer
+from backend.analyzer.ai_project_analyzer import AIProjectAnalyzer
 from backend.models.promt import AssistantRequest, AssistantResponse
 from backend.ai.assistant import Assistant
 from backend.routers.gitlab_router import router as gitlab_router
 from backend.routers.student_router import router as student_router
-
-
-
+from backend.routers.ai_router import router as ai_router
 
 
 router = APIRouter(prefix="/api")
@@ -17,7 +17,7 @@ assistant = Assistant()
 
 router.include_router(gitlab_router, prefix="/gitlab")
 router.include_router(student_router)
-
+router.include_router(ai_router)
 
 class AnalysisRequest(BaseModel):
     student_id: str

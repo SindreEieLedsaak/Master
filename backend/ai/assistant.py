@@ -29,8 +29,7 @@ class Assistant:
                 messages = [
                     {'role': 'system', 'content': system_prompt},
                     {'role': 'user', 'content': prompt}
-                ],
-                max_tokens = 1000
+                ]
             )
             return response.choices[0].message.content.strip() or ""
         except Exception as e:
