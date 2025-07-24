@@ -14,7 +14,7 @@ def create_student(
     student_service: StudentService = Depends(StudentService)
 ):
     try:
-        student = student_service.create_student(request.gitlab_username)
+        student = student_service.get_or_create_student(request.gitlab_username)
         return student
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) 
