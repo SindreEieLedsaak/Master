@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { apiClient, CodeAnalysis } from '@/lib/api';
-import CodeEditor from '@/components/CodeEditor';
+import MultiFileEditor, { MultiFileEditorRef } from '@/components/MultiFileEditor';
+import MultiFilePyodideRunner from '@/components/MultiFilePyodideRunner';
 import FeedbackPanel from '@/components/FeedbackPanel';
 import AssistantChat from '@/components/AssistantChat';
-import { Play, Bot, MessageSquare } from 'lucide-react';
+import { Bot, MessageSquare, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Message {
@@ -16,9 +17,27 @@ interface Message {
     timestamp: Date;
 }
 
+interface File {
+    name: string;
+    content: string;
+    language: string;
+}
+
 export default function EditorPage() {
     const { user } = useUser();
-    const [code, setCode] = useState('# Write your Python code here\nprint("Hello, World!")');
+    const [files, setFiles] = useState<File[]>([
+        {
+            name: 'main.py',
+            content: 'from module import greet\n\nprint(greet("World"))',
+            language: 'python'
+        },
+        {
+            name: 'module.py',
+            content: '# A module you can import\n\ndef greet(name):\n    return f"Hello, {name}!"',
+            language: 'python'
+        }
+    ]);
+    const [activeFile, setActiveFile] = useState<string>('main.py');
     const [feedback, setFeedback] = useState<CodeAnalysis | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
@@ -30,16 +49,20 @@ export default function EditorPage() {
         },
     ]);
     const [isAssistantLoading, setIsAssistantLoading] = useState(false);
+    const [showPyodide, setShowPyodide] = useState(true); // Default to showing the runner
+
+    const editorRef = useRef<MultiFileEditorRef>(null);
 
     const handleAnalyzeCode = async () => {
-        if (!code.trim()) {
+        const activeFileContent = files.find(f => f.name === activeFile)?.content;
+        if (!activeFileContent?.trim()) {
             toast.error('Please write some code first');
             return;
         }
 
         setIsAnalyzing(true);
         try {
-            const result = await apiClient.analyzeCode(code);
+            const result = await apiClient.analyzeCode(activeFileContent);
             setFeedback(result);
             toast.success('Code analysis completed!');
         } catch (error) {
@@ -50,23 +73,12 @@ export default function EditorPage() {
         }
     };
 
-    const handleRunCode = async () => {
-        if (!code.trim()) {
-            toast.error('Please write some code first');
-            return;
-        }
-
-        setIsAnalyzing(true);
-        try {
-            const result = await apiClient.runPython(code);
-            toast.success('Code executed successfully!');
-            // You could display the output in a modal or separate panel
-            console.log('Output:', result.output);
-        } catch (error) {
-            console.error('Error running code:', error);
-            toast.error('Failed to run code. Please check your syntax.');
-        } finally {
-            setIsAnalyzing(false);
+    const handleRunCode = (files: File[], activeFile: string) => {
+        // This is now handled by the MultiFileEditor, but we can use this to set the active file
+        // for the runner if we want to trigger it from outside
+        setActiveFile(activeFile);
+        if (!showPyodide) {
+            setShowPyodide(true);
         }
     };
 
@@ -81,8 +93,11 @@ export default function EditorPage() {
         setMessages(prev => [...prev, userMessage]);
         setIsAssistantLoading(true);
 
+        const editorFiles = editorRef.current?.getFiles() || [];
+        const code = editorFiles.map(f => `## ${f.name}\n\n${f.content}`).join('\n\n---\n\n');
+
         try {
-            const response = await apiClient.getAssistantResponse(message);
+            const response = await apiClient.getAssistantResponse(message, code);
             const assistantMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 text: response.response,
@@ -121,29 +136,23 @@ export default function EditorPage() {
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Code Editor</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Multi-File Code Editor</h1>
                     <p className="text-gray-600">
-                        Write your Python code and get instant feedback
+                        Write Python code across multiple files and run them with references to each other
                     </p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Left Column - Code Editor */}
+                    {/* Left Column - Multi-File Editor and Runner */}
                     <div className="space-y-6">
-                        <div>
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Code</h2>
-                            <CodeEditor code={code} onChange={setCode} />
-                        </div>
+                        <MultiFileEditor
+                            ref={editorRef}
+                            initialFiles={files}
+                            onFilesChange={setFiles}
+                            onRunCode={handleRunCode}
+                        />
 
                         <div className="flex space-x-4">
-                            <button
-                                onClick={handleRunCode}
-                                disabled={isAnalyzing}
-                                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
-                            >
-                                <Play className="h-4 w-4 mr-2" />
-                                Run Code
-                            </button>
                             <button
                                 onClick={handleAnalyzeCode}
                                 disabled={isAnalyzing}
@@ -152,6 +161,16 @@ export default function EditorPage() {
                                 <Bot className="h-4 w-4 mr-2" />
                                 Analyze Code
                             </button>
+                        </div>
+
+                        {/* The Pyodide Runner is now always visible but can be toggled */}
+                        <div className={`${showPyodide ? 'block' : 'hidden'}`}>
+                            <MultiFilePyodideRunner
+                                files={files}
+                                activeFile={activeFile}
+                                onOutput={(output) => console.log('Code output:', output)}
+                                onError={(error) => console.error('Code error:', error)}
+                            />
                         </div>
 
                         {feedback && <FeedbackPanel feedback={feedback} isLoading={isAnalyzing} />}

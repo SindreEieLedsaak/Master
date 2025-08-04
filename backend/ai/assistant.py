@@ -19,11 +19,14 @@ class Assistant:
         api_version = "2024-10-21",
         )   
 
-    def get_assistant_response(self, prompt: str) -> str:
+    def get_assistant_response(self, prompt: str, code: str | None = None) -> str:
         """
         Get a response from the AI assistant using the provided prompt.
         """
         try:
+            if code:
+                prompt = f"Here is the code: {code}\n\n{prompt}"
+            print(prompt)
             response = self.client.chat.completions.create(
                 model = 'gpt-4.1-mini',
                 messages = [

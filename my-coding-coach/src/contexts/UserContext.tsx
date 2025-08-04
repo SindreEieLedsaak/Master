@@ -19,19 +19,33 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const isInitializing = useRef(true);
+    const hasInitialized = useRef(false);
 
     useEffect(() => {
+        // Only initialize once
+        if (hasInitialized.current) return;
+
         // Check for user in localStorage on mount
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
-            setUser(JSON.parse(storedUser));
+            try {
+                const parsedUser = JSON.parse(storedUser);
+                setUser(parsedUser);
+            } catch (error) {
+                console.error('Failed to parse stored user:', error);
+                localStorage.removeItem('user');
+            }
         }
         setIsLoading(false);
-        isInitializing.current = false;
+        hasInitialized.current = true;
     }, []);
 
     const handleSetUser = (newUser: User | null) => {
+        // Prevent unnecessary updates
+        if (JSON.stringify(user) === JSON.stringify(newUser)) {
+            return;
+        }
+
         setUser(newUser);
         if (newUser) {
             localStorage.setItem('user', JSON.stringify(newUser));

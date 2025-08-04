@@ -7,6 +7,7 @@ const api = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
+    withCredentials: true, // Include cookies in requests
 });
 
 // Request interceptor to add auth token
@@ -60,8 +61,8 @@ export const apiClient = {
     },
 
     // Assistant
-    getAssistantResponse: async (prompt: string): Promise<{ response: string }> => {
-        const response = await api.post('/api/assistant', { prompt });
+    getAssistantResponse: async (prompt: string, code?: string): Promise<{ response: string }> => {
+        const response = await api.post('/api/assistant', { prompt, code });
         return response.data;
     },
 
@@ -97,5 +98,14 @@ export const apiClient = {
     logout: async (): Promise<void> => {
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user');
+    },
+
+    // GitLa
+    async syncGitlabProjects(gitlabUsername: string): Promise<any> {
+        console.log(gitlabUsername);
+        const response = await api.post('api/students/sync',
+            { gitlab_username: gitlabUsername },
+        );
+        return response.data;
     },
 }; 

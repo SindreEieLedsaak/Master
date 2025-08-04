@@ -2,12 +2,42 @@
 
 import { useUser } from '@/contexts/UserContext';
 import { apiClient } from '@/lib/api';
-import { Code, Lightbulb, BookOpen, TrendingUp, Bot, Terminal, ShieldCheck } from 'lucide-react';
+import { Code, Lightbulb, BookOpen, TrendingUp, Bot, Terminal, ShieldCheck, GitMerge } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 // Component for the logged-in user's dashboard
 const Dashboard = () => {
   const { user } = useUser();
+  const [isSyncing, setIsSyncing] = useState(false);
+
+
+
+  const handleSyncProjects = async () => {
+    if (!user) {
+      toast.error('You must be logged in to sync projects.');
+      return;
+    }
+
+
+
+    setIsSyncing(true);
+    toast.loading('Syncing your GitLab projects...');
+
+    try {
+      const response = await apiClient.syncGitlabProjects(user.gitlab_username);
+      toast.dismiss();
+      toast.success(`Successfully synced ${response.project_count} projects!`);
+    } catch (error) {
+      console.error('Failed to sync projects:', error);
+      toast.dismiss();
+      toast.error('Failed to sync projects. Please check your token or try again later.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -17,6 +47,25 @@ const Dashboard = () => {
         <p className="text-gray-600">
           Ready to improve your coding skills? Let's get started.
         </p>
+      </div>
+
+      <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Sync Your GitLab Projects</h2>
+            <p className="text-gray-600 mt-1">
+              Keep your project list up-to-date by syncing with your GitLab account.
+            </p>
+          </div>
+          <button
+            onClick={handleSyncProjects}
+            disabled={isSyncing}
+            className="flex items-center px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+          >
+            <GitMerge className="h-5 w-5 mr-2" />
+            {isSyncing ? 'Syncing...' : 'Sync Now'}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

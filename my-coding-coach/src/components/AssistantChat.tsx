@@ -45,8 +45,8 @@ export default function AssistantChat({ onSendMessage, messages, isLoading }: As
                     >
                         <div
                             className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.isUser
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-100 text-gray-900'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-100 text-gray-900'
                                 }`}
                         >
                             <div className="flex items-start">
