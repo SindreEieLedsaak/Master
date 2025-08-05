@@ -2,6 +2,9 @@ from backend.mongodb.MongoDB import get_db_connection
 from backend.ai.assistant import Assistant
 from datetime import datetime
 from backend.ai.ai_analyzer import AIAnalyzer
+import json
+import re
+
 class AIProjectAnalyzer:
     def __init__(self, student_id: str):
         self.student_id = student_id
@@ -38,10 +41,10 @@ class AIProjectAnalyzer:
 
     def create_project_suggestions(self) -> list[str]:
         """
-        Generates new project suggestions based on the last stored analysis,
-        ensuring they haven't been suggested before.
+        Generates comprehensive project suggestions with detailed explanations,
+        starter code, and examples based on the student's analysis.
         """
-        # Step 1: Get the latest analysis
+
         latest_analysis_doc = self.analysis_collection.find_one(
             {"student_id": self.student_id}
         )
@@ -50,29 +53,137 @@ class AIProjectAnalyzer:
         
         code_analysis = latest_analysis_doc["analysis"]
 
-        # Step 2: Get previously suggested tasks
+
         past_suggestions_docs = self.suggestions_collection.find(
             {"student_id": self.student_id}
         )
         past_suggestions = [doc["suggestion"] for doc in past_suggestions_docs]
 
-        # Step 3: Generate new suggestions
-        prompt = self._create_suggestion_prompt(code_analysis, past_suggestions)
-        new_suggestions_text = self.ai_analyzer.get_ai_response(prompt)
-        
-        # Simple parsing of suggestions (assumes one suggestion per line)
-        new_suggestions = [s.strip() for s in new_suggestions_text.split('\n') if s.strip()]
 
-        # Step 4: Store the new suggestions
-        for suggestion in new_suggestions:
+        prompt = self._create_comprehensive_suggestion_prompt(code_analysis, past_suggestions)
+        suggestions_response = self.ai_analyzer.get_ai_response(prompt)
+        
+
+        parsed_suggestions = self._parse_comprehensive_suggestions(suggestions_response)
+        
+        for suggestion in parsed_suggestions:
             self.suggestions_collection.insert_one({
                 "student_id": self.student_id,
-                
                 "suggestion": suggestion,
                 "created_at": datetime.utcnow()
             })
 
-        return new_suggestions
+        return parsed_suggestions
+
+    def _parse_comprehensive_suggestions(self, suggestions_text: str) -> list[str]:
+        """
+        Parse the comprehensive suggestion response and return formatted suggestions.
+        """
+        # Split by task markers using a more compatible approach
+        lines = suggestions_text.split('\n')
+        current_task = []
+        suggestions = []
+        
+        for line in lines:
+            if re.match(r'##\s*Task\s*\d+', line):
+                # Start of new task - save previous if exists
+                if current_task:
+                    task_text = '\n'.join(current_task).strip()
+                    if task_text:
+                        suggestions.append(task_text)
+                current_task = [line]
+            else:
+                if current_task:  # Only add lines if we're inside a task
+                    current_task.append(line)
+        
+        # Don't forget the last task
+        if current_task:
+            task_text = '\n'.join(current_task).strip()
+            if task_text:
+                suggestions.append(task_text)
+        
+        return suggestions if suggestions else [suggestions_text.strip()]
+
+    def _create_comprehensive_suggestion_prompt(self, code_analysis: str, past_suggestions: list[str]) -> str:
+        """
+        Creates an enhanced prompt for generating comprehensive, educational task suggestions
+        with detailed explanations, starter code, and examples.
+        """
+        prompt = f"""You are an expert programming instructor and mentor. Based on the student's code analysis, 
+create 2-3 comprehensive, educational programming tasks that will help them improve their skills.
+
+Each task should be a complete learning module that includes:
+1. Clear task description and learning objectives
+2. Specific requirements and constraints
+3. Starter code template with helpful comments
+4. Expected output example
+5. Step-by-step guidance hints
+6. Skills this task will develop
+
+**CRITICAL FORMATTING REQUIREMENTS:**
+- Each task must start with "## Task [Number]: [Title]"
+- Use markdown formatting with proper sections
+- Include code blocks with ```python and ```
+- Make tasks progressively challenging but achievable
+- Focus on areas identified in the code analysis
+
+**STUDENT CODE ANALYSIS:**
+{code_analysis}
+
+**PREVIOUSLY SUGGESTED TASKS (DO NOT REPEAT THESE):**
+{chr(10).join([f"- {suggestion[:100]}..." for suggestion in past_suggestions]) if past_suggestions else "None"}
+
+Generate exactly 2-3 new tasks following this format:
+
+## Task 1: [Descriptive Title]
+
+### Description
+[Clear explanation of what the student will build and why it's important]
+
+### Learning Objectives
+- [Objective 1]
+- [Objective 2]
+- [Objective 3]
+
+### Requirements
+- [Requirement 1]
+- [Requirement 2]
+- [Requirement 3]
+
+### Starter Code
+```python
+# [Helpful comment explaining the structure]
+# TODO: [Specific instruction for student]
+
+def main():
+    # TODO: [What student should implement here]
+    pass
+
+if __name__ == "__main__":
+    main()
+```
+
+### Expected Output
+```
+[Example of what the program should produce when completed]
+```
+
+### Step-by-Step Guidance
+1. [First step with specific action]
+2. [Second step building on the first]
+3. [Third step to complete the task]
+
+### Skills Developed
+- [Skill 1]
+- [Skill 2]
+
+---
+
+[Repeat format for Task 2 and Task 3]
+
+Remember: Base tasks on the student's current level and identified improvement areas. Make them engaging, practical, and educational."""
+
+        return prompt
 
     def _get_all_student_code(self) -> str:
         """Fetches and concatenates all Python code for the student."""
@@ -86,22 +197,6 @@ class AIProjectAnalyzer:
                         all_code += f"# FILE: {project_name}/{file_path}\n"
                         all_code += file_content + "\n\n"
         return all_code.strip()
-
-    def _create_suggestion_prompt(self, code_analysis: str, past_suggestions: list[str]) -> str:
-        """Creates a prompt to suggest projects, avoiding past ones."""
-        prompt = (
-            "You are a programming mentor. Based on the following code analysis, "
-            "suggest 2-3 new, small projects or tasks for a student to practice and improve. "
-            "The projects should be small and focused on a single concept or skill. "
-            "Include a description of the project and the skills it will help the student improve inline with the code analysis."
-            "Crucially, you MUST NOT suggest any of the tasks that have been suggested before.\n\n"
-            "--- CODE ANALYSIS ---\n"
-            f"{code_analysis}\n\n"
-            "--- PREVIOUSLY SUGGESTED TASKS (DO NOT REPEAT THESE) ---\n"
-            f"{' - ' + chr(10) + ' - '.join(past_suggestions) if past_suggestions else 'None'}\n\n"
-            "Please provide only the new project ideas, one per line. Do not add any extra commentary."
-        )
-        return prompt
 
     def _create_analysis_prompt(self, code: str) -> str:
         """Creates a prompt for the AI to analyze the student's code."""
@@ -150,7 +245,6 @@ class AIProjectAnalyzer:
         Retrieves the stored analysis for this student.
         """
         analysis_doc = self.analysis_collection.find_one({"student_id": self.student_id})
-        print(analysis_doc)
         if analysis_doc:
             return {
                 "analysis": analysis_doc["analysis"],
