@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 import os
 
 from pydantic.type_adapter import P
-from backend.models.promt import ai_analysis_prompt
 import re
 import os
 import openai
