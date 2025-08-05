@@ -1,7 +1,7 @@
 from backend.mongodb.MongoDB import get_db_connection
 from backend.ai.assistant import Assistant
 from datetime import datetime
-
+from backend.ai.ai_analyzer import AIAnalyzer
 class AIProjectAnalyzer:
     def __init__(self, student_id: str):
         self.student_id = student_id
@@ -9,7 +9,7 @@ class AIProjectAnalyzer:
         self.projects_collection = self.db[student_id]
         self.analysis_collection = self.db["code_analyses"]
         self.suggestions_collection = self.db["suggested_tasks"]
-        self.assistant = Assistant()
+        self.ai_analyzer = AIAnalyzer.get_instance()
 
     def analyze_and_store_student_projects(self) -> str:
         """
@@ -21,7 +21,7 @@ class AIProjectAnalyzer:
             return "No Python code found for this student to analyze."
 
         prompt = self._create_analysis_prompt(all_code)
-        analysis = self.assistant.get_assistant_response(prompt)
+        analysis = self.ai_analyzer.get_ai_response(prompt)
         
         # Store the analysis, replacing any old one for this student
         self.analysis_collection.update_one(
@@ -58,7 +58,7 @@ class AIProjectAnalyzer:
 
         # Step 3: Generate new suggestions
         prompt = self._create_suggestion_prompt(code_analysis, past_suggestions)
-        new_suggestions_text = self.assistant.get_assistant_response(prompt)
+        new_suggestions_text = self.ai_analyzer.get_ai_response(prompt)
         
         # Simple parsing of suggestions (assumes one suggestion per line)
         new_suggestions = [s.strip() for s in new_suggestions_text.split('\n') if s.strip()]
@@ -85,7 +85,6 @@ class AIProjectAnalyzer:
                     if file_content:
                         all_code += f"# FILE: {project_name}/{file_path}\n"
                         all_code += file_content + "\n\n"
-        print(all_code)
         return all_code.strip()
 
     def _create_suggestion_prompt(self, code_analysis: str, past_suggestions: list[str]) -> str:
@@ -145,5 +144,18 @@ class AIProjectAnalyzer:
         """
         self.suggestions_collection.delete_many({"student_id": self.student_id})
         return "All suggestions deleted successfully"
+    
+    def get_stored_analysis(self) -> dict | None:
+        """
+        Retrieves the stored analysis for this student.
+        """
+        analysis_doc = self.analysis_collection.find_one({"student_id": self.student_id})
+        print(analysis_doc)
+        if analysis_doc:
+            return {
+                "analysis": analysis_doc["analysis"],
+                "created_at": analysis_doc["created_at"]
+            }
+        return None
     
     

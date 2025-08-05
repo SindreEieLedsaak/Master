@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Send, Bot, User } from 'lucide-react';
+import { SimpleFormattedText } from '@/utils/textFormatter';
 
 interface Message {
     id: string;
@@ -52,7 +53,13 @@ export default function AssistantChat({ onSendMessage, messages, isLoading }: As
                             <div className="flex items-start">
                                 {!message.isUser && <Bot className="h-4 w-4 mr-2 mt-0.5 text-blue-600" />}
                                 <div className="flex-1">
-                                    <p className="text-sm">{message.text}</p>
+                                    {message.isUser ? (
+                                        <p className="text-sm">{message.text}</p>
+                                    ) : (
+                                        <div className="text-sm">
+                                            <SimpleFormattedText text={message.text} />
+                                        </div>
+                                    )}
                                     <p className="text-xs opacity-70 mt-1">
                                         {message.timestamp.toLocaleTimeString()}
                                     </p>

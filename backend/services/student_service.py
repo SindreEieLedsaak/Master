@@ -54,3 +54,18 @@ class StudentService:
         print(result)
 
         return result
+
+
+
+    def get_last_sync_date(self, student_id: str) -> str:
+        """
+        Get the last sync date for a student
+        """
+        student = self.student_collection.find_one({"id": student_id})
+        return student["last_sync_date"]
+    
+    def update_last_sync_date(self, student_id: str, last_sync_date: str):
+        """
+        Update the last sync date for a student
+        """
+        self.student_collection.update_one({"id": student_id}, {"$set": {"last_sync_date": last_sync_date}})    

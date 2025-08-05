@@ -42,7 +42,7 @@ async def run_python(code_input: CodeInput):
 
 @router.post("/assistant", response_model=AssistantResponse)
 async def get_assistant_response(request: AssistantRequest):
-    assistant = Assistant()
+    assistant = Assistant.get_instance()
     
     response = assistant.get_assistant_response(request.prompt, request.code)
     return AssistantResponse(response=response)

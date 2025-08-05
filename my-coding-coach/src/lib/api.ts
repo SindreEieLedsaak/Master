@@ -37,6 +37,19 @@ export interface Suggestion {
     created_at: string;
 }
 
+export interface Project {
+    name: string;
+    description?: string;
+    files: Record<string, string>;
+    updated_at: string;
+    language?: string;
+}
+
+export interface StudentProjects {
+    student_id: string;
+    projects: Project[];
+}
+
 export const apiClient = {
     // Code Analysis
     analyzeCode: async (code: string): Promise<CodeAnalysis> => {
@@ -51,12 +64,17 @@ export const apiClient = {
 
     // AI Analysis
     analyzeStudentProjects: async (studentId: string): Promise<AIAnalysis> => {
-        const response = await api.post(`/api/ai/analyze/${studentId}`);
+        const response = await api.post(`/api/ai-analyze-student-projects/${studentId}`);
         return response.data;
     },
 
     getAISuggestions: async (studentId: string): Promise<{ suggestions: string[] }> => {
-        const response = await api.get(`/api/ai/suggest/${studentId}`);
+        const response = await api.get(`/api/ai-get-suggestions/${studentId}`);
+        return response.data;
+    },
+
+    createAISuggestions: async (studentId: string): Promise<{ suggestions: string[] }> => {
+        const response = await api.post(`/api/ai-suggest-projects/${studentId}`);
         return response.data;
     },
 
@@ -107,5 +125,20 @@ export const apiClient = {
             { gitlab_username: gitlabUsername },
         );
         return response.data;
+    },
+
+    // Projects
+    getStudentProjects: async (studentId: string): Promise<StudentProjects> => {
+        const response = await api.get(`/api/student/${studentId}/projects`);
+        return response.data;
+    },
+
+    getStoredAnalysis: async (studentId: string): Promise<{ analysis: { analysis: string, created_at: string } } | null> => {
+        try {
+            const response = await api.get(`/api/ai-get-analysis/${studentId}`);
+            return response.data;
+        } catch (error) {
+            return null;
+        }
     },
 }; 

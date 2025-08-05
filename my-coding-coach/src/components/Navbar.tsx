@@ -2,7 +2,7 @@
 
 import { useUser } from '@/contexts/UserContext';
 import { apiClient } from '@/lib/api';
-import { Code, BookOpen, Lightbulb, User, LogOut } from 'lucide-react';
+import { Code, BookOpen, Lightbulb, User, LogOut, FolderOpen } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Navbar() {
@@ -60,6 +60,13 @@ export default function Navbar() {
                             className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
                         >
                             Code Editor
+                        </Link>
+                        <Link
+                            href="/projects"
+                            className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                        >
+                            <FolderOpen className="h-4 w-4 inline mr-1" />
+                            Projects
                         </Link>
                         <Link
                             href="/suggestions"

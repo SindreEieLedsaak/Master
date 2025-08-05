@@ -26,7 +26,6 @@ async def auth_callback(
     user_info = token.get('userinfo')
     gitlab_access_token = token.get('access_token')
     expires_in = token.get('expires_in', 7200)  # Default 2 hours
-    print(user_info)
 
     if user_info and gitlab_access_token:
         # Create student record (no token storage in DB)
@@ -53,11 +52,10 @@ async def auth_callback(
             value=encrypted_token,
             max_age=expires_in,  # Use GitLab token expiration
             httponly=True,       # Prevent XSS
-            secure=True,        # Set to True for production HTTPS
+            secure=False,        # Set to True for production HTTPS
             samesite="lax",      # CSRF protection
             domain="localhost"   # Ensure cookie is accessible across localhost ports
         )
-        print(f"🍪 Setting cookie with encrypted token: {encrypted_token[:20]}...")
         
         return response
 

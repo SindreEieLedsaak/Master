@@ -5,12 +5,19 @@ import { useUser } from '@/contexts/UserContext';
 import { apiClient } from '@/lib/api';
 import { Lightbulb, Plus, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { SimpleFormattedText } from '@/utils/textFormatter';
 
 export default function SuggestionsPage() {
     const { user } = useUser();
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
+
+    const analyzeProjects = async () => {
+        if (!user) return;
+        const result = await apiClient.analyzeStudentProjects(user.id);
+        console.log(result);
+    };
 
     const loadSuggestions = async () => {
         if (!user) return;
@@ -32,7 +39,7 @@ export default function SuggestionsPage() {
 
         setIsGenerating(true);
         try {
-            const result = await apiClient.getAISuggestions(user.id);
+            const result = await apiClient.createAISuggestions(user.id);
             setSuggestions(result.suggestions);
             toast.success('New suggestions generated!');
         } catch (error) {
@@ -68,6 +75,12 @@ export default function SuggestionsPage() {
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <button
+                    onClick={analyzeProjects}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                    Analyze Projects
+                </button>
                 <div className="mb-8">
                     <div className="flex items-center justify-between">
                         <div>
@@ -109,9 +122,9 @@ export default function SuggestionsPage() {
                                         <h3 className="font-semibold text-gray-900 mb-2">
                                             Task {index + 1}
                                         </h3>
-                                        <p className="text-gray-600 text-sm leading-relaxed">
-                                            {suggestion}
-                                        </p>
+                                        <div className="text-gray-600 text-sm leading-relaxed">
+                                            <SimpleFormattedText text={suggestion} />
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex space-x-2">

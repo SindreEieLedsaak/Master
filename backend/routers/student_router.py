@@ -39,6 +39,8 @@ def sync_student(
     request: Request,
     student_service: StudentService = Depends(StudentService)
 ):
+
+    
     try:
         # Get GitLab token from secure cookie
         gitlab_token_cookie = request.cookies.get("gitlab_token")

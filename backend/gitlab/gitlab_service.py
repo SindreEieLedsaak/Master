@@ -282,6 +282,7 @@ class GitlabService:
                 # Use GitLab project ID as document ID for upsert
                 student_collection.update_one(
                     {"project_id": project["project_id"]},
+                    {"$set": {"last_sync_date": datetime.now().isoformat()}},
                     {"$set": project},
                     upsert=True
                 )
