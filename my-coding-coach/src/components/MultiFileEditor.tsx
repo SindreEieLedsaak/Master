@@ -97,9 +97,6 @@ const MultiFileEditor = forwardRef<MultiFileEditorRef, MultiFileEditorProps>(({
         }
     };
 
-    const handleRunCode = () => {
-        onRunCode?.(files, activeFile);
-    };
 
     return (
         <div className="border rounded-lg bg-white">
@@ -107,13 +104,7 @@ const MultiFileEditor = forwardRef<MultiFileEditorRef, MultiFileEditorProps>(({
             <div className="border-b bg-gray-50 p-4">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-gray-900">Multi-File Editor</h3>
-                    <button
-                        onClick={handleRunCode}
-                        className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                    >
-                        <Play className="h-4 w-4 mr-2" />
-                        Run Code
-                    </button>
+
                 </div>
 
                 {/* File Tabs */}

@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
-import { apiClient } from '@/lib/api';
-import { Lightbulb, Plus, RefreshCw, Play, ChevronDown, ChevronUp } from 'lucide-react';
+import { apiClient, Suggestion } from '@/lib/api';
+import { Lightbulb, RefreshCw, Play, ChevronDown, ChevronUp, Trash } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { FormattedAIText } from '@/utils/textFormatter';
 import { useRouter } from 'next/navigation';
 
 interface TaskData {
+    id: string;
     title: string;
     description: string;
     fullContent: string;
@@ -18,19 +19,19 @@ interface TaskData {
 export default function SuggestionsPage() {
     const { user } = useUser();
     const router = useRouter();
-    const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     const [parsedTasks, setParsedTasks] = useState<TaskData[]>([]);
     const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
     const [isLoading, setIsLoading] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
 
-    const parseTaskFromSuggestion = (suggestion: string): TaskData => {
+    const parseTaskFromSuggestion = (s: Suggestion): TaskData => {
         // Extract title from ## Task X: Title format
-        const titleMatch = suggestion.match(/##\s*Task\s*\d+:\s*(.+)/i);
+        const titleMatch = s.suggestion.match(/##\s*Task\s*\d+:\s*(.+)/i);
         const title = titleMatch ? titleMatch[1].trim() : 'Programming Task';
 
         // Extract description section - using split and find instead of lookahead
-        const sections = suggestion.split(/###\s*/);
+        const sections = s.suggestion.split(/###\s*/);
         let description = '';
         for (const section of sections) {
             if (section.toLowerCase().startsWith('description')) {
@@ -40,17 +41,18 @@ export default function SuggestionsPage() {
             }
         }
         if (!description) {
-            description = suggestion.substring(0, 200) + '...';
+            description = s.suggestion.substring(0, 200) + '...';
         }
 
         // Extract starter code
-        const codeMatch = suggestion.match(/```python\n([\s\S]*?)\n```/);
+        const codeMatch = s.suggestion.match(/```python\n([\s\S]*?)\n```/);
         const starterCode = codeMatch ? codeMatch[1] : '';
 
         return {
+            id: s._id,
             title,
             description,
-            fullContent: suggestion,
+            fullContent: s.suggestion,
             starterCode
         };
     };
@@ -66,11 +68,11 @@ export default function SuggestionsPage() {
 
         setIsLoading(true);
         try {
-            const result = await apiClient.getAISuggestions(user.id);
-            setSuggestions(result.suggestions);
+            const result = await apiClient.getSuggestions(user.id);
+            setSuggestions(result);
 
             // Parse tasks for better display
-            const parsed = result.suggestions.map(parseTaskFromSuggestion);
+            const parsed = result.map(parseTaskFromSuggestion);
             setParsedTasks(parsed);
         } catch (error) {
             console.error('Error loading suggestions:', error);
@@ -85,12 +87,8 @@ export default function SuggestionsPage() {
 
         setIsGenerating(true);
         try {
-            const result = await apiClient.createAISuggestions(user.id);
-            setSuggestions(result.suggestions);
-
-            // Parse the new comprehensive tasks
-            const parsed = result.suggestions.map(parseTaskFromSuggestion);
-            setParsedTasks(parsed);
+            await apiClient.createAISuggestions(user.id);
+            await loadSuggestions();
 
             toast.success('New comprehensive tasks generated!');
         } catch (error) {
@@ -119,6 +117,17 @@ export default function SuggestionsPage() {
             newExpanded.add(index);
         }
         setExpandedTasks(newExpanded);
+    };
+
+    const handleDeleteTask = async (suggestionId: string) => {
+        try {
+            await apiClient.deleteSuggestion(suggestionId);
+            toast.success('Suggestion deleted');
+            loadSuggestions(); // Refresh list
+        } catch (error) {
+            console.error('Error deleting suggestion:', error);
+            toast.error('Failed to delete suggestion');
+        }
     };
 
     useEffect(() => {
@@ -223,8 +232,12 @@ export default function SuggestionsPage() {
                                                 <Play className="h-4 w-4 mr-1" />
                                                 Start Task
                                             </button>
-                                            <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
-                                                Save for Later
+                                            <button
+                                                onClick={() => handleDeleteTask(task.id)}
+                                                className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                                            >
+                                                <Trash className="h-4 w-4 mr-1" />
+                                                Delete
                                             </button>
                                         </div>
                                     </div>

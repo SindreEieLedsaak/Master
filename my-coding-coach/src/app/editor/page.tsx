@@ -128,25 +128,7 @@ export default function EditorPage() {
         }
     };
 
-    const handleAnalyzeCode = async () => {
-        const activeFileContent = files.find(f => f.name === activeFile)?.content;
-        if (!activeFileContent?.trim()) {
-            toast.error('Please write some code first');
-            return;
-        }
 
-        setIsAnalyzing(true);
-        try {
-            const result = await apiClient.analyzeCode(activeFileContent);
-            setFeedback(result);
-            toast.success('Code analysis completed!');
-        } catch (error) {
-            console.error('Error analyzing code:', error);
-            toast.error('Failed to analyze code. Please try again.');
-        } finally {
-            setIsAnalyzing(false);
-        }
-    };
 
     const handleRunCode = (files: File[], activeFile: string) => {
         setActiveFile(activeFile);
@@ -277,14 +259,7 @@ Please provide helpful guidance that's specifically relevant to this learning ta
                         />
 
                         <div className="flex space-x-4">
-                            <button
-                                onClick={handleAnalyzeCode}
-                                disabled={isAnalyzing}
-                                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                            >
-                                <Bot className="h-4 w-4 mr-2" />
-                                Analyze Code
-                            </button>
+
                             {currentTask && !showTaskPanel && (
                                 <button
                                     onClick={() => setShowTaskPanel(true)}

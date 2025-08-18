@@ -22,6 +22,7 @@ from backend.routers.auth_router import router as auth_router
 from backend.routers.gitlab_router import router as gitlab_router
 from backend.routers.student_router import router as student_router
 from backend.routers.ai_router import router as ai_router
+from backend.routers.suggestion_router import router as suggestion_router
 
 load_dotenv()
 
@@ -47,6 +48,7 @@ api_v1_router.include_router(api_router)
 api_v1_router.include_router(gitlab_router)
 api_v1_router.include_router(student_router)
 api_v1_router.include_router(ai_router)
+api_v1_router.include_router(suggestion_router)
 
 app.include_router(api_v1_router)
 

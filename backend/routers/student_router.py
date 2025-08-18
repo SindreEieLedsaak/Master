@@ -2,6 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from backend.services.student_service import StudentService
 from backend.models.student import Student
+from backend.services.suggestion_service import SuggestionService
+from backend.models.suggestion import SuggestionInDB
+from typing import List
 
 router = APIRouter()
 
@@ -10,6 +13,17 @@ class StudentCreateRequest(BaseModel):
 
 class StudentSyncRequest(BaseModel):
     gitlab_username: str
+
+@router.get("/students/{student_id}/suggestions", response_model=List[SuggestionInDB], tags=["Students", "Suggestions"])
+def get_student_suggestions(
+    student_id: str,
+    suggestion_service: SuggestionService = Depends(SuggestionService)
+):
+    """
+    Retrieves all suggestions for a specific student.
+    """
+    suggestions = suggestion_service.get_all_for_student(student_id)
+    return suggestions
 
 @router.post("/students", response_model=Student, tags=["Students"])
 def create_student(
