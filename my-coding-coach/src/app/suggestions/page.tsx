@@ -106,7 +106,6 @@ export default function SuggestionsPage() {
         // Navigate to editor with task indicator
         router.push('/editor?task=active');
 
-        toast.success(`Starting: ${taskData.title}`);
     };
 
     const toggleTaskExpansion = (index: number) => {

@@ -41,7 +41,18 @@ const MultiFileEditor = forwardRef<MultiFileEditorRef, MultiFileEditorProps>(({
     const [activeFile, setActiveFile] = useState<string>('main.py');
     const [newFileName, setNewFileName] = useState<string>('');
 
-    // Update parent when files change
+
+    useEffect(() => {
+        if (initialFiles) {
+            setFiles(initialFiles);
+            const newActiveFile = initialFiles.find(f => f.name === 'main.py')?.name || initialFiles[0]?.name;
+            if (newActiveFile) {
+                setActiveFile(newActiveFile);
+            }
+        }
+    }, [initialFiles]);
+
+
     useEffect(() => {
         onFilesChange?.(files);
     }, [files, onFilesChange]);
@@ -147,7 +158,7 @@ const MultiFileEditor = forwardRef<MultiFileEditorRef, MultiFileEditorProps>(({
                         value={newFileName}
                         onChange={(e) => setNewFileName(e.target.value)}
                         placeholder="New file name (e.g., utils.py)"
-                        className="flex-1 px-3 py-1 border border-gray-300 rounded-md text-sm"
+                        className="flex-1 px-3 py-1 border border-gray-300 rounded-md text-sm text-black"
                         onKeyPress={(e) => e.key === 'Enter' && createFile()}
                     />
                     <button
