@@ -11,8 +11,10 @@ interface File {
 }
 
 interface MultiFileEditorProps {
-    initialFiles?: File[];
-    onFilesChange?: (files: File[]) => void;
+    files: File[];
+    activeFile: string;
+    onFilesChange: (files: File[]) => void;
+    onActiveFileChange: (fileName: string) => void;
     onRunCode?: (files: File[], activeFile: string) => void;
 }
 
@@ -21,41 +23,13 @@ export interface MultiFileEditorRef {
 }
 
 const MultiFileEditor = forwardRef<MultiFileEditorRef, MultiFileEditorProps>(({
-    initialFiles,
+    files,
+    activeFile,
     onFilesChange,
+    onActiveFileChange,
     onRunCode,
 }, ref) => {
-    const [files, setFiles] = useState<File[]>(initialFiles || [
-        {
-            name: 'main.py',
-            content: '# Write your main code here\nprint("Hello, world!")',
-            language: 'python'
-        },
-        {
-            name: 'module.py',
-            content: '# A module you can import\n\ndef greet(name):\n    return f"Hello, {name}!"',
-            language: 'python'
-        }
-    ]);
-
-    const [activeFile, setActiveFile] = useState<string>('main.py');
     const [newFileName, setNewFileName] = useState<string>('');
-
-
-    useEffect(() => {
-        if (initialFiles) {
-            setFiles(initialFiles);
-            const newActiveFile = initialFiles.find(f => f.name === 'main.py')?.name || initialFiles[0]?.name;
-            if (newActiveFile) {
-                setActiveFile(newActiveFile);
-            }
-        }
-    }, [initialFiles]);
-
-
-    useEffect(() => {
-        onFilesChange?.(files);
-    }, [files, onFilesChange]);
 
     useImperativeHandle(ref, () => ({
         getFiles: () => files,
@@ -66,11 +40,14 @@ const MultiFileEditor = forwardRef<MultiFileEditorRef, MultiFileEditorProps>(({
     };
 
     const updateFileContent = (content: string) => {
-        setFiles(prev => prev.map(file =>
+
+        const newFiles = files.map(file =>
             file.name === activeFile
                 ? { ...file, content }
                 : file
-        ));
+        );
+        onFilesChange(newFiles);
+
     };
 
     const createFile = () => {
@@ -89,8 +66,8 @@ const MultiFileEditor = forwardRef<MultiFileEditorRef, MultiFileEditorProps>(({
             language: 'python'
         };
 
-        setFiles(prev => [...prev, newFile]);
-        setActiveFile(fileName);
+        onFilesChange([...files, newFile]);
+        onActiveFileChange(fileName);
         setNewFileName('');
     };
 
@@ -100,11 +77,11 @@ const MultiFileEditor = forwardRef<MultiFileEditorRef, MultiFileEditorProps>(({
             return;
         }
 
-        setFiles(prev => prev.filter(f => f.name !== fileName));
+        const newFiles = files.filter(f => f.name !== fileName);
+        onFilesChange(newFiles);
 
         if (activeFile === fileName) {
-            const remainingFiles = files.filter(f => f.name !== fileName);
-            setActiveFile(remainingFiles[0].name);
+            onActiveFileChange(newFiles[0].name);
         }
     };
 
@@ -129,7 +106,7 @@ const MultiFileEditor = forwardRef<MultiFileEditorRef, MultiFileEditorProps>(({
                                 }`}
                         >
                             <button
-                                onClick={() => setActiveFile(file.name)}
+                                onClick={() => onActiveFileChange(file.name)}
                                 className="flex items-center"
                             >
                                 <FileText className="h-4 w-4 mr-1" />
@@ -177,7 +154,9 @@ const MultiFileEditor = forwardRef<MultiFileEditorRef, MultiFileEditorProps>(({
                     height="100%"
                     language={getActiveFile()?.language || 'python'}
                     value={getActiveFile()?.content || ''}
-                    onChange={(value) => updateFileContent(value || '')}
+                    onChange={(value) => {
+                        updateFileContent(value || '');
+                    }}
                     theme="vs-dark"
                     options={{
                         minimap: { enabled: false },

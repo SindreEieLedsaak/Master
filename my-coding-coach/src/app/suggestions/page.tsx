@@ -104,7 +104,10 @@ export default function SuggestionsPage() {
         sessionStorage.setItem('currentTask', JSON.stringify(taskData));
 
         // Navigate to editor with task indicator
-        router.push('/editor?task=active');
+        router.push('/editor');
+        sessionStorage.setItem('taskmode', 'true');
+
+
 
     };
 

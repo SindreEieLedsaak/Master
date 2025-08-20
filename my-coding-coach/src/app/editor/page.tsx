@@ -9,7 +9,6 @@ import FeedbackPanel from '@/components/FeedbackPanel';
 import AssistantChat from '@/components/AssistantChat';
 import { Bot, MessageSquare, BookOpen, X, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useSearchParams } from 'next/navigation';
 import { FormattedAIText } from '@/utils/textFormatter';
 
 interface Message {
@@ -26,6 +25,7 @@ interface File {
 }
 
 interface TaskData {
+    id: string;
     title: string;
     description: string;
     fullContent: string;
@@ -34,67 +34,111 @@ interface TaskData {
 
 export default function EditorPage() {
     const { user } = useUser();
-    const searchParams = useSearchParams();
-    const [files, setFiles] = useState<File[]>([
-        {
-            name: 'main.py',
-            content: 'from module import greet\n\nprint(greet("World"))',
-            language: 'python'
-        },
-        {
-            name: 'module.py',
-            content: '# A module you can import\n\ndef greet(name):\n    return f"Hello, {name}!"',
-            language: 'python'
+    const [files, setFiles] = useState<File[]>(() => {
+        if (typeof window !== 'undefined') {
+            const storedFiles = sessionStorage.getItem('files');
+            if (storedFiles) {
+                try {
+                    return JSON.parse(storedFiles);
+                } catch (e) {
+                    console.error("Failed to parse files from session storage", e);
+                }
+            }
         }
-    ]);
-    const [activeFile, setActiveFile] = useState<string>('main.py');
+        return [
+            {
+                name: 'main.py',
+                content: 'from module import greet\n\nprint(greet("World"))',
+                language: 'python'
+            },
+            {
+                name: 'module.py',
+                content: '# A module you can import\n\ndef greet(name):\n    return f"Hello, {name}!"',
+                language: 'python'
+            }
+        ];
+    });
+
+    const [activeFile, setActiveFile] = useState<string>(() => {
+        if (typeof window !== 'undefined') {
+            return sessionStorage.getItem('activeFile') || 'main.py';
+        }
+        return 'main.py';
+    });
     const [feedback, setFeedback] = useState<CodeAnalysis | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [currentTask, setCurrentTask] = useState<TaskData | null>(null);
     const [showTaskPanel, setShowTaskPanel] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            id: '1',
-            text: 'Hello! I\'m your AI coding assistant. I can help you understand your code, explain concepts, and provide guidance. What would you like to know?',
-            isUser: false,
-            timestamp: new Date(),
-        },
-    ]);
+    const [messages, setMessages] = useState<Message[]>(() => {
+        if (typeof window !== 'undefined') {
+            const storedMessages = sessionStorage.getItem('messages');
+            if (storedMessages) {
+                try {
+                    return JSON.parse(storedMessages);
+                } catch (e) {
+                    console.error("Failed to parse messages from session storage", e);
+                }
+            }
+        }
+        return [
+            {
+                id: '1',
+                text: 'Hello! I\'m your AI coding assistant. I can help you understand your code, explain concepts, and provide guidance. What would you like to know?',
+                isUser: false,
+                timestamp: new Date(),
+            },
+        ];
+    });
     const [isAssistantLoading, setIsAssistantLoading] = useState(false);
     const [showPyodide, setShowPyodide] = useState(true);
 
     const editorRef = useRef<MultiFileEditorRef>(null);
 
-    // Load task from sessionStorage when component mounts or task parameter changes
+
     useEffect(() => {
-        const taskParam = searchParams.get('task');
-        if (taskParam === 'active') {
-            const storedTask = sessionStorage.getItem('currentTask');
-            if (storedTask) {
-                try {
-                    const taskData: TaskData = JSON.parse(storedTask);
-                    loadTaskFromData(taskData);
-                } catch (error) {
-                    console.error('Error parsing stored task:', error);
-                    toast.error('Failed to load task data');
+        const taskmode = sessionStorage.getItem('taskmode');
+        const storedTask = sessionStorage.getItem('currentTask');
+
+        if (taskmode === 'true' && storedTask) {
+            try {
+                const taskData: TaskData = JSON.parse(storedTask);
+                const loadedTaskId = sessionStorage.getItem('loadedTaskId');
+
+                if (taskData.id !== loadedTaskId) {
+                    // This is a new task, load starter code
+                    if (taskData.starterCode) {
+                        const newFiles = [{
+                            name: 'main.py',
+                            content: taskData.starterCode,
+                            language: 'python'
+                        }];
+                        setFiles(newFiles);
+                        setActiveFile('main.py');
+                    }
+                    sessionStorage.setItem('loadedTaskId', taskData.id);
                 }
+
+                loadTaskFromData(taskData);
+            } catch (error) {
+                console.error('Error parsing stored task:', error);
+                toast.error('Failed to load task data');
             }
         }
-    }, [searchParams]);
+    }, []);
+
+    useEffect(() => {
+        sessionStorage.setItem('files', JSON.stringify(files));
+        sessionStorage.setItem('activeFile', activeFile);
+    }, [files, activeFile])
+
+    useEffect(() => {
+        sessionStorage.setItem('messages', JSON.stringify(messages));
+    }, [messages])
 
     const loadTaskFromData = (taskData: TaskData) => {
         setCurrentTask(taskData);
         setShowTaskPanel(true);
-
-        // Load starter code if available
-        if (taskData.starterCode) {
-            setFiles([{
-                name: 'main.py',
-                content: taskData.starterCode,
-                language: 'python'
-            }]);
-            setActiveFile('main.py');
-        }
+        console.log("taskData", taskData);
 
         // Add task context to assistant with a more comprehensive introduction
         const taskContextMessage: Message = {
@@ -104,7 +148,10 @@ export default function EditorPage() {
             timestamp: new Date(),
         };
 
-        setMessages(prev => [taskContextMessage, ...prev.slice(1)]); // Replace the generic greeting
+        // Check if the task context message is already present
+        if (!messages.some(m => m.id.startsWith('task-'))) {
+            setMessages(prev => [taskContextMessage, ...prev.slice(1)]); // Replace the generic greeting
+        }
 
         toast.success(`Task loaded: ${taskData.title}`);
     };
@@ -125,7 +172,26 @@ export default function EditorPage() {
 
             // Clear the task from storage
             sessionStorage.removeItem('currentTask');
+            sessionStorage.removeItem('loadedTaskId');
+            sessionStorage.removeItem('taskmode');
         }
+    };
+
+    const handleExitTaskMode = () => {
+        toast('Exited task mode.');
+        setCurrentTask(null);
+        setShowTaskPanel(false);
+        sessionStorage.removeItem('taskmode');
+        sessionStorage.removeItem('currentTask');
+        sessionStorage.removeItem('loadedTaskId');
+
+        const exitMessage: Message = {
+            id: `exit-task-${Date.now()}`,
+            text: `You have exited the current task. I'm back to being a general-purpose coding assistant. How can I help?`,
+            isUser: false,
+            timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, exitMessage]);
     };
 
 
@@ -135,6 +201,17 @@ export default function EditorPage() {
         if (!showPyodide) {
             setShowPyodide(true);
         }
+    };
+
+    const handleResetAssistant = () => {
+        setMessages([
+            {
+                id: '1',
+                text: 'Hello! I\'m your AI coding assistant. I can help you understand your code, explain concepts, and provide guidance. What would you like to know?',
+                isUser: false,
+                timestamp: new Date(),
+            },
+        ]);
     };
 
     const handleAssistantMessage = async (message: string) => {
@@ -216,13 +293,22 @@ Please provide helpful guidance that's specifically relevant to this learning ta
                             </p>
                         </div>
                         {currentTask && (
-                            <button
-                                onClick={handleCompleteTask}
-                                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                            >
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Mark Complete
-                            </button>
+                            <div className="flex items-center space-x-2">
+                                <button
+                                    onClick={handleCompleteTask}
+                                    className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                                >
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                    Mark Complete
+                                </button>
+                                <button
+                                    onClick={handleExitTaskMode}
+                                    className="flex items-center px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                                >
+                                    <X className="h-4 w-4 mr-2" />
+                                    Exit Task
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -253,8 +339,10 @@ Please provide helpful guidance that's specifically relevant to this learning ta
                     <div className="space-y-6">
                         <MultiFileEditor
                             ref={editorRef}
-                            initialFiles={files}
+                            files={files}
+                            activeFile={activeFile}
                             onFilesChange={setFiles}
+                            onActiveFileChange={setActiveFile}
                             onRunCode={handleRunCode}
                         />
 
@@ -298,6 +386,7 @@ Please provide helpful guidance that's specifically relevant to this learning ta
                             onSendMessage={handleAssistantMessage}
                             messages={messages}
                             isLoading={isAssistantLoading}
+                            onResetAssistant={handleResetAssistant}
                         />
                     </div>
                 </div>

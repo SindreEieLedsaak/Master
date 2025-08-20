@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, X } from 'lucide-react';
 import { SimpleFormattedText } from '@/utils/textFormatter';
 
 interface Message {
@@ -15,9 +15,10 @@ interface AssistantChatProps {
     onSendMessage: (message: string) => Promise<void>;
     messages: Message[];
     isLoading?: boolean;
+    onResetAssistant: () => void;
 }
 
-export default function AssistantChat({ onSendMessage, messages, isLoading }: AssistantChatProps) {
+export default function AssistantChat({ onSendMessage, messages, isLoading, onResetAssistant }: AssistantChatProps) {
     const [input, setInput] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -30,11 +31,19 @@ export default function AssistantChat({ onSendMessage, messages, isLoading }: As
 
     return (
         <div className="bg-white rounded-lg shadow h-96 flex flex-col">
-            <div className="p-4 border-b">
+            <div className="p-4 border-b flex items-center justify-between">
                 <h3 className="text-lg font-semibold flex items-center">
                     <Bot className="h-5 w-5 mr-2 text-blue-600" />
                     AI Assistant
                 </h3>
+                <button
+                    onClick={onResetAssistant}
+                    className="text-gray-400 hover:text-gray-600 transition-colors flex items-center"
+                    title="Clear chat history"
+                >
+                    <X className="h-4 w-4" />
+                    Reset
+                </button>
             </div>
 
             {/* Messages */}
@@ -61,7 +70,7 @@ export default function AssistantChat({ onSendMessage, messages, isLoading }: As
                                         </div>
                                     )}
                                     <p className="text-xs opacity-70 mt-1">
-                                        {message.timestamp.toLocaleTimeString()}
+                                        {message.timestamp.toLocaleString()}
                                     </p>
                                 </div>
                                 {message.isUser && <User className="h-4 w-4 ml-2 mt-0.5" />}
