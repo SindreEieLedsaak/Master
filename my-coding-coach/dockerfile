@@ -3,14 +3,14 @@
 # 1) Install dependencies
 FROM node:20-alpine AS deps
 WORKDIR /app
-COPY Master/my-coding-coach/package*.json ./
+COPY my-coding-coach/package*.json ./
 RUN npm ci
 
 # 2) Build the app
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY Master/my-coding-coach ./
+COPY my-coding-coach ./
 # Allow build-time override of the API base URL
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
@@ -21,7 +21,7 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 # Install only production deps
-COPY Master/my-coding-coach/package*.json ./
+COPY my-coding-coach/package*.json ./
 RUN npm ci --omit=dev
 # Copy build output and static assets
 COPY --from=builder /app/.next ./.next

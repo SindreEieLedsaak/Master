@@ -280,10 +280,13 @@ class GitlabService:
         for project in projects:
             if isinstance(project, dict):
                 # Use GitLab project ID as document ID for upsert
+                update_doc = {
+                    **project,
+                    "last_sync_date": datetime.now().isoformat()
+                }
                 student_collection.update_one(
                     {"project_id": project["project_id"]},
-                    {"$set": {"last_sync_date": datetime.now().isoformat()}},
-                    {"$set": project},
+                    {"$set": update_doc},
                     upsert=True
                 )
         

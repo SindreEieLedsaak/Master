@@ -151,7 +151,8 @@ const MultiFileEditor = forwardRef<MultiFileEditorRef, MultiFileEditorProps>(({
             {/* Code Editor */}
             <div className="h-96">
                 <Editor
-                    height="100%"
+                    height="110%"
+                    width="100%"
                     language={getActiveFile()?.language || 'python'}
                     value={getActiveFile()?.content || ''}
                     onChange={(value) => {

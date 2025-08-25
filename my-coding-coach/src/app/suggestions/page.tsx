@@ -76,7 +76,7 @@ export default function SuggestionsPage() {
             setParsedTasks(parsed);
         } catch (error) {
             console.error('Error loading suggestions:', error);
-            toast.error('Failed to load suggestions. Please run an analysis first.');
+            toast.error('Failed to load suggestions. Make sure the code analysis has been run before generating suggestions');
         } finally {
             setIsLoading(false);
         }
@@ -93,7 +93,7 @@ export default function SuggestionsPage() {
             toast.success('New comprehensive tasks generated!');
         } catch (error) {
             console.error('Error generating suggestions:', error);
-            toast.error('Failed to generate new suggestions.');
+            toast.error('Failed to generate new suggestions. Make sure the code analysis has been run before generating suggestions');
         } finally {
             setIsGenerating(false);
         }

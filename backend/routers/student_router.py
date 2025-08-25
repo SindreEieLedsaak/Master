@@ -23,6 +23,7 @@ def get_student_suggestions(
     Retrieves all suggestions for a specific student.
     """
     suggestions = suggestion_service.get_all_for_student(student_id)
+    
     return suggestions
 
 @router.post("/students", response_model=Student, tags=["Students"])

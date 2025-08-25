@@ -87,6 +87,10 @@ export const apiClient = {
     // Suggestions CRUD
     getSuggestions: async (studentId: string): Promise<Suggestion[]> => {
         const response = await api.get(`/api/students/${studentId}/suggestions`);
+        if (response.status === 404) {
+            alert("Make sure the code analysis has been run before generating suggestions");
+            return [];
+        }
         return response.data;
     },
 

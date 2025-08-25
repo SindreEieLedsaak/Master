@@ -34,30 +34,37 @@ interface TaskData {
 
 export default function EditorPage() {
     const { user } = useUser();
+    // EditorPage – change initial files state
     const [files, setFiles] = useState<File[]>(() => {
         if (typeof window !== 'undefined') {
+            const taskmode = sessionStorage.getItem('taskmode');
+            const storedTask = sessionStorage.getItem('currentTask');
+
+            if (taskmode === 'true' && storedTask) {
+                try {
+                    const taskData: TaskData = JSON.parse(storedTask);
+                    if (taskData.starterCode) {
+                        return [{
+                            name: 'main.py',
+                            content: taskData.starterCode,
+                            language: 'python'
+                        }];
+                    }
+                } catch { }
+            }
+
             const storedFiles = sessionStorage.getItem('files');
             if (storedFiles) {
-                try {
-                    return JSON.parse(storedFiles);
-                } catch (e) {
-                    console.error("Failed to parse files from session storage", e);
-                }
+                try { return JSON.parse(storedFiles); } catch { }
             }
         }
+        // fallback
         return [
-            {
-                name: 'main.py',
-                content: 'from module import greet\n\nprint(greet("World"))',
-                language: 'python'
-            },
-            {
-                name: 'module.py',
-                content: '# A module you can import\n\ndef greet(name):\n    return f"Hello, {name}!"',
-                language: 'python'
-            }
+            { name: 'main.py', content: 'from module import greet\n\nprint(greet("World"))', language: 'python' },
+            { name: 'module.py', content: '# A module you can import\n\ndef greet(name):\n  return f"Hello, {name}!"', language: 'python' }
         ];
     });
+
 
     const [activeFile, setActiveFile] = useState<string>(() => {
         if (typeof window !== 'undefined') {

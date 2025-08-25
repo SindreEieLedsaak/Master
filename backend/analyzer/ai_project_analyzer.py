@@ -109,13 +109,13 @@ class AIProjectAnalyzer:
         Creates an enhanced prompt for generating comprehensive, educational task suggestions
         with detailed explanations, starter code, and examples.
         """
-        prompt = f"""You are an expert programming instructor and mentor. Based on the student's code analysis, 
-create 2-3 comprehensive, educational programming tasks that will help them improve their skills.
+        prompt = f"""You are an expert Python programming instructor and mentor. Based on the student's code analysis, 
+create 2-3 comprehensive, educational Python programming tasks that will help them improve their skills.
 
 Each task should be a complete learning module that includes:
 1. Clear task description and learning objectives
 2. Specific requirements and constraints
-3. Starter code template with helpful comments
+3. Python starter code template with helpful comments
 4. Expected output example
 5. Step-by-step guidance hints
 6. Skills this task will develop
@@ -123,9 +123,10 @@ Each task should be a complete learning module that includes:
 **CRITICAL FORMATTING REQUIREMENTS:**
 - Each task must start with "## Task [Number]: [Title]"
 - Use markdown formatting with proper sections
-- Include code blocks with ```python and ```
+- Include code blocks with ```python and ``` (PYTHON ONLY)
 - Make tasks progressively challenging but achievable
 - Focus on areas identified in the code analysis
+- ALL CODE MUST BE PYTHON - NO OTHER LANGUAGES
 
 **STUDENT CODE ANALYSIS:**
 {code_analysis}
@@ -133,30 +134,30 @@ Each task should be a complete learning module that includes:
 **PREVIOUSLY SUGGESTED TASKS (DO NOT REPEAT THESE):**
 {chr(10).join([f"- {suggestion[:100]}..." for suggestion in past_suggestions]) if past_suggestions else "None"}
 
-Generate exactly 2-3 new tasks following this format:
+Generate exactly 2-3 new Python tasks following this format:
 
 ## Task 1: [Descriptive Title]
 
 ### Description
-[Clear explanation of what the student will build and why it's important]
+[Clear explanation of what the student will build and why it's important for Python development]
 
 ### Learning Objectives
-- [Objective 1]
-- [Objective 2]
-- [Objective 3]
+- [Python-specific objective 1]
+- [Python-specific objective 2]
+- [Python-specific objective 3]
 
 ### Requirements
-- [Requirement 1]
-- [Requirement 2]
-- [Requirement 3]
+- [Python requirement 1]
+- [Python requirement 2]
+- [Python requirement 3]
 
 ### Starter Code
 ```python
-# [Helpful comment explaining the structure]
+# Python starter code with helpful comments
 # TODO: [Specific instruction for student]
 
 def main():
-    # TODO: [What student should implement here]
+    # TODO: [What student should implement here in Python]
     pass
 
 if __name__ == "__main__":
@@ -165,23 +166,23 @@ if __name__ == "__main__":
 
 ### Expected Output
 ```
-[Example of what the program should produce when completed]
+[Example of what the Python program should produce when completed]
 ```
 
 ### Step-by-Step Guidance
-1. [First step with specific action]
-2. [Second step building on the first]
-3. [Third step to complete the task]
+1. [First step with specific Python action]
+2. [Second step building on the first Python concept]
+3. [Third step to complete the Python task]
 
 ### Skills Developed
-- [Skill 1]
-- [Skill 2]
+- [Python skill 1]
+- [Python skill 2]
 
 ---
 
 [Repeat format for Task 2 and Task 3]
 
-Remember: Base tasks on the student's current level and identified improvement areas. Make them engaging, practical, and educational."""
+Remember: Base tasks on the student's current Python level and identified improvement areas. Make them engaging, practical, and educational. ALL CODE MUST BE PYTHON."""
 
         return prompt
 
