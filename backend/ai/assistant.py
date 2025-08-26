@@ -29,7 +29,7 @@ class Assistant:
                 },
                 api_version="2024-10-21",
             )
-            self.conversation_history = []
+            self.conversation_history = [{"role": "system", "content": system_prompt}]
             Assistant._initialized = True
 
     @classmethod
@@ -54,12 +54,12 @@ class Assistant:
         try:
             if code:
                 code = f"Here is the code: {code}\n\n"
-            self.conversation_history.append({"role": "system", "content": system_prompt})
-            self.conversation_history.append({"role": "system", "content": code})
+            
+
             self.conversation_history.append({"role": "user", "content": prompt})
             response = self.client.chat.completions.create(
                 model='gpt-4.1-mini',
-                messages=self.conversation_history
+                messages=self.conversation_history + [{"role": "user", "content": code}]
             )
             self.conversation_history.append({"role": "assistant", "content": response.choices[0].message.content.strip() or ""})
             print(self.conversation_history)
