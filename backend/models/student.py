@@ -1,9 +1,11 @@
 import uuid
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 class Student(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()), alias="_id")
     gitlab_username: str
 
-    class Config:
-        allow_population_by_field_name = True 
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    ) 

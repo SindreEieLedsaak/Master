@@ -53,6 +53,22 @@ async def delete_all_suggestions(student_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/ai-get-analysis/{student_id}")
+async def get_stored_analysis(student_id: str):
+    """
+    Retrieves the stored analysis for a student.
+    """
+    try:
+        analyzer = AIProjectAnalyzer(student_id)
+        analysis = analyzer.get_stored_analysis()
+
+        if analysis:
+            return {"analysis": analysis}
+        else:
+            raise HTTPException(status_code=404, detail="No analysis found for this student")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.delete("/ai-delete-suggestion/{student_id}/{suggestion_id}")
 async def delete_suggestion(student_id: str, suggestion_id: str):
     """

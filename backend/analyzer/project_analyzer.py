@@ -15,6 +15,7 @@ class ProjectAnalyzer:
         self.gl = gitlab.Gitlab(GITLAB_URL, private_token=GITLAB_TOKEN)
         self.code_analyzer = CodeAnalyzer()
         self.db = get_db_connection("students")
+        
     def analyze_student_projects(self, student_id):
         """
         Analyze all projects for a student and generate overall coding metrics

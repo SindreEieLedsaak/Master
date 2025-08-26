@@ -8,14 +8,20 @@ class SuggestionService:
         self.db = get_db_connection("students")
         self.collection = self.db["suggested_tasks"]
 
+    def _normalize_suggestion(self, suggestion: Dict) -> Dict:
+        if suggestion and "_id" in suggestion:
+            suggestion["_id"] = str(suggestion["_id"])
+        return suggestion
+
     def get_all_for_student(self, student_id: str) -> List[Dict]:
         """Fetches all suggestions for a given student."""
         suggestions = self.collection.find({"student_id": student_id})
-        return list(suggestions)
+        return [self._normalize_suggestion(s) for s in suggestions]
 
     def get_one(self, suggestion_id: str) -> Optional[Dict]:
         """Fetches a single suggestion by its ID."""
-        return self.collection.find_one({"_id": ObjectId(suggestion_id)})
+        suggestion = self.collection.find_one({"_id": ObjectId(suggestion_id)})
+        return self._normalize_suggestion(suggestion)
 
     def create(self, student_id: str, suggestion_text: str) -> Dict:
         """Creates a new suggestion for a student."""

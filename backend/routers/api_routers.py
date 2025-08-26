@@ -1,35 +1,35 @@
-from contextlib import asynccontextmanager
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import subprocess
 from backend.analyzer.code_analyzer import CodeAnalyzer
 from backend.analyzer.project_analyzer import ProjectAnalyzer
-from backend.analyzer.ai_project_analyzer import AIProjectAnalyzer
 from backend.models.promt import AssistantRequest, AssistantResponse
 from backend.ai.assistant import Assistant
-from backend.routers.gitlab_router import router as gitlab_router
-from backend.routers.student_router import router as student_router
-from backend.routers.ai_router import router as ai_router
 
-
-router = APIRouter(prefix="/api")
-assistant = Assistant()
-
-router.include_router(gitlab_router, prefix="/gitlab")
-router.include_router(student_router)
-router.include_router(ai_router)
+# This router will handle general API endpoints
+router = APIRouter()
 
 class AnalysisRequest(BaseModel):
     student_id: str
     
-    
 class CodeInput(BaseModel):
     code: str
+
+@router.get("/analyze-student-projects/{student_id}")
+async def analyze_student_projects(student_id: str):
+    """
+    Analyzes all Python projects for a given student.
+    """
+    try:
+        project_analyzer = ProjectAnalyzer()
+        feedback = project_analyzer.analyze_student_projects(student_id)
+        return feedback
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/run-python")
 async def run_python(code_input: CodeInput):
     try:
-        # Execute the Python code (again, be very careful with arbitrary code)
         result = subprocess.run(
             ["python", "-c", code_input.code],
             capture_output=True,
@@ -40,17 +40,10 @@ async def run_python(code_input: CodeInput):
     except subprocess.CalledProcessError as e:
         raise HTTPException(status_code=400, detail=e.stderr)
 
-@router.post("/analyze-code")
-async def analyze_code(code_input: CodeInput):
-    try:
-        analyzer = CodeAnalyzer()
-        feedback = analyzer.analyze_code(code_input.code)
-        print(feedback.quality_score)
-        return feedback
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
 @router.post("/assistant", response_model=AssistantResponse)
 async def get_assistant_response(request: AssistantRequest):
-    response = assistant.get_assistant_response(request.prompt)
+    assistant = Assistant.get_instance()
+    
+    response = assistant.get_assistant_response(request.prompt, request.code)
     return AssistantResponse(response=response)
+

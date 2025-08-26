@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 class AssistantRequest(BaseModel):
     prompt: str
+    code: str | None = None
 
 class AssistantResponse(BaseModel):
     response: str
