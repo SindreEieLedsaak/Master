@@ -18,7 +18,7 @@ version = "4.9.0"
 description = "High level compatibility layer for multiple asynchronous event loop implementations"
 optional = false
 python-versions = ">=3.9"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "anyio-4.9.0-py3-none-any.whl", hash = "sha256:9f76d541cad6e36af7beb62e978876f3b41e3e04f2c1fbf0884604c0a9c4d93c"},
     {file = "anyio-4.9.0.tar.gz", hash = "sha256:673c0c244e15788651a4ff38710fea9675823028a6f08a5eda409e0c9840a028"},
@@ -56,7 +56,7 @@ version = "2025.4.26"
 description = "Python package for providing Mozilla's CA Bundle."
 optional = false
 python-versions = ">=3.6"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "certifi-2025.4.26-py3-none-any.whl", hash = "sha256:30350364dfe371162649852c63336a15c70c6510c2ad5015b21c2345311805f3"},
     {file = "certifi-2025.4.26.tar.gz", hash = "sha256:0a816057ea3cdefcef70270d2c515e4506bbc954f417fa5ade2021213bb8f0c6"},
@@ -431,7 +431,7 @@ version = "0.16.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
 optional = false
 python-versions = ">=3.8"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86"},
     {file = "h11-0.16.0.tar.gz", hash = "sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1"},
@@ -443,7 +443,7 @@ version = "1.0.9"
 description = "A minimal low-level HTTP client."
 optional = false
 python-versions = ">=3.8"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "httpcore-1.0.9-py3-none-any.whl", hash = "sha256:2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55"},
     {file = "httpcore-1.0.9.tar.gz", hash = "sha256:6e34463af53fd2ab5d807f399a9b45ea31c3dfa2276f15a2c3f00afff6e176e8"},
@@ -461,14 +461,14 @@ trio = ["trio (>=0.22.0,<1.0)"]
 
 [[package]]
 name = "httpx"
-version = "0.28.1"
+version = "0.27.2"
 description = "The next generation HTTP client."
 optional = false
 python-versions = ">=3.8"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
-    {file = "httpx-0.28.1-py3-none-any.whl", hash = "sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad"},
-    {file = "httpx-0.28.1.tar.gz", hash = "sha256:75e98c5f16b0f35b567856f597f06ff2270a374470a5c2392242528e3e3e42fc"},
+    {file = "httpx-0.27.2-py3-none-any.whl", hash = "sha256:7bb2708e112d8fdd7829cd4243970f0c223274051cb35ee80c03301ee29a3df0"},
+    {file = "httpx-0.27.2.tar.gz", hash = "sha256:f7c2be1d2f3c3c3160d441802406b206c2b76f5947b11115e6df10c6c65e66c2"},
 ]
 
 [package.dependencies]
@@ -476,6 +476,7 @@ anyio = "*"
 certifi = "*"
 httpcore = "==1.*"
 idna = "*"
+sniffio = "*"
 
 [package.extras]
 brotli = ["brotli ; platform_python_implementation == \"CPython\"", "brotlicffi ; platform_python_implementation != \"CPython\""]
@@ -490,7 +491,7 @@ version = "3.10"
 description = "Internationalized Domain Names in Applications (IDNA)"
 optional = false
 python-versions = ">=3.6"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "idna-3.10-py3-none-any.whl", hash = "sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3"},
     {file = "idna-3.10.tar.gz", hash = "sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9"},
@@ -611,6 +612,20 @@ files = [
 ]
 
 [[package]]
+name = "npm"
+version = "0.1.1"
+description = "Python bindings and utils for npm."
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "npm-0.1.1.tar.gz", hash = "sha256:84aefc83a3486d034c4c14f8bcd4b746b95b529289b0d042c268f6201c3034e9"},
+]
+
+[package.dependencies]
+optional-django = "0.1.0"
+
+[[package]]
 name = "numpy"
 version = "2.2.5"
 description = "Fundamental package for array computing in Python"
@@ -701,6 +716,17 @@ typing-extensions = ">=4.11,<5"
 datalib = ["numpy (>=1)", "pandas (>=1.2.3)", "pandas-stubs (>=1.1.0.11)"]
 realtime = ["websockets (>=13,<16)"]
 voice-helpers = ["numpy (>=2.0.2)", "sounddevice (>=0.5.1)"]
+
+[[package]]
+name = "optional-django"
+version = "0.1.0"
+description = "Utils for apps to provide optional support for django applications"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "optional-django-0.1.0.tar.gz", hash = "sha256:77d6b9fb74bda30583e1af4683a39e0af725cea6003252bba75838f4939326c5"},
+]
 
 [[package]]
 name = "packaging"
@@ -1009,6 +1035,25 @@ tomli = {version = ">=1", markers = "python_version < \"3.11\""}
 dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "requests", "setuptools", "xmlschema"]
 
 [[package]]
+name = "pytest-asyncio"
+version = "0.24.0"
+description = "Pytest support for asyncio"
+optional = false
+python-versions = ">=3.8"
+groups = ["dev"]
+files = [
+    {file = "pytest_asyncio-0.24.0-py3-none-any.whl", hash = "sha256:a811296ed596b69bf0b6f3dc40f83bcaf341b155a269052d82efa2b25ac7037b"},
+    {file = "pytest_asyncio-0.24.0.tar.gz", hash = "sha256:d081d828e576d85f875399194281e92bf8a68d60d72d1a2faf2feddb6c46b276"},
+]
+
+[package.dependencies]
+pytest = ">=8.2,<9"
+
+[package.extras]
+docs = ["sphinx (>=5.3)", "sphinx-rtd-theme (>=1.0)"]
+testing = ["coverage (>=6.2)", "hypothesis (>=5.7.1)"]
+
+[[package]]
 name = "python-dotenv"
 version = "1.1.0"
 description = "Read key-value pairs from a .env file and set them as environment variables"
@@ -1136,7 +1181,7 @@ version = "1.3.1"
 description = "Sniff out which async library your code is running under"
 optional = false
 python-versions = ">=3.7"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "sniffio-1.3.1-py3-none-any.whl", hash = "sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2"},
     {file = "sniffio-1.3.1.tar.gz", hash = "sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc"},
@@ -1236,7 +1281,7 @@ files = [
     {file = "typing_extensions-4.13.2-py3-none-any.whl", hash = "sha256:a439e7c04b49fec3e5d3e2beaa21755cadbbdc391694e28ccdd36ca4a1408f8c"},
     {file = "typing_extensions-4.13.2.tar.gz", hash = "sha256:e6c81219bd689f51865d9e372991c540bda33a0379d5573cddb9a3a23f7caaef"},
 ]
-markers = {dev = "python_version < \"3.11\""}
+markers = {dev = "python_version < \"3.13\""}
 
 [[package]]
 name = "typing-inspection"
@@ -1294,4 +1339,4 @@ standard = ["colorama (>=0.4) ; sys_platform == \"win32\"", "httptools (>=0.6.3)
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10"
-content-hash = "ef46eb2ef4af4cf8837c073b3c6dcfe9330a58b18259447fd26a9aa7e4307a74"
+content-hash = "59479a175ce507a7073d2744940d6f9864c823657d1c70ade57e0f1e92b5b96c"
