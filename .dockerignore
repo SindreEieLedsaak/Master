@@ -1,0 +1,40 @@
+# Environment files
+.env
+.env.*
+backend/.env
+backend/.env.*
+my-coding-coach/.env
+my-coding-coach/.env.*
+
+# Git
+.git
+.gitignore
+
+# OS / Editor
+.DS_Store
+.vscode
+.idea
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+.pytest_cache
+.mypy_cache
+.venv
+venv
+env/
+
+# Node / Next.js
+**/node_modules
+**/.next
+**/dist
+**/build
+**/coverage
+**/.cache
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

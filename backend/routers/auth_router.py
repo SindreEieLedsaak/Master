@@ -25,7 +25,7 @@ async def auth_callback(
     token = await auth_service.get_oauth().gitlab.authorize_access_token(request)
     user_info = token.get('userinfo')
     gitlab_access_token = token.get('access_token')
-    expires_in = token.get('expires_in', 7200)  # Default 2 hours
+    expires_in = token.get('expires_in', 7200) 
 
     if user_info and gitlab_access_token:
         # Create student record (no token storage in DB)

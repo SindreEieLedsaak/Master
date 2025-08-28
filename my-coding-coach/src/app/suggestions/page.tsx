@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/contexts/user/UserContext';
 import { apiClient, Suggestion } from '@/lib/api';
 import { Lightbulb, RefreshCw, Play, ChevronDown, ChevronUp, Trash } from 'lucide-react';
 import toast from 'react-hot-toast';

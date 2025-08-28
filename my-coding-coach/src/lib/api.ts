@@ -1,148 +1,42 @@
-import axios from 'axios';
+import { api, API_BASE_URL } from './http';
+export type { CodeAnalysis, AIAnalysis, Suggestion, Project, StudentProjects } from './types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
-const api = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    withCredentials: true, // Include cookies in requests
-});
-
-// Request interceptor to add auth token
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-});
-
-export interface CodeAnalysis {
-    semantic_errors: string[];
-    style_issues: string[];
-    quality_score: string;
-    improvement_suggestions: string[];
-}
-
-export interface AIAnalysis {
-    analysis: string;
-}
-
-export interface Suggestion {
-    _id: string;
-    student_id: string;
-    suggestion: string;
-    created_at: string;
-}
-
-export interface Project {
-    name: string;
-    description?: string;
-    files: Record<string, string>;
-    updated_at: string;
-    language?: string;
-}
-
-export interface StudentProjects {
-    student_id: string;
-    projects: Project[];
-}
+import * as Assistant from './api/assistant';
+import * as Code from './api/code';
+import * as AI from './api/ai';
+import * as Suggestions from './api/suggestions';
+import * as Auth from './api/auth';
+import * as Students from './api/students';
 
 export const apiClient = {
     // Code Analysis
-    analyzeCode: async (code: string): Promise<CodeAnalysis> => {
-        const response = await api.post('/api/analyze-code', { code });
-        return response.data;
-    },
-
-    runPython: async (code: string): Promise<{ output: string }> => {
-        const response = await api.post('/api/run-python', { code });
-        return response.data;
-    },
+    analyzeCode: Code.analyzeCode,
+    runPython: Code.runPython,
 
     // AI Analysis
-    analyzeStudentProjects: async (studentId: string): Promise<AIAnalysis> => {
-        const response = await api.post(`/api/ai-analyze-student-projects/${studentId}`);
-        return response.data;
-    },
-
-    getAISuggestions: async (studentId: string): Promise<{ suggestions: string[] }> => {
-        const response = await api.get(`/api/ai-get-suggestions/${studentId}`);
-        return response.data;
-    },
-
-    createAISuggestions: async (studentId: string): Promise<{ suggestions: string[] }> => {
-        const response = await api.post(`/api/ai-suggest-projects/${studentId}`);
-        return response.data;
-    },
+    analyzeStudentProjects: AI.analyzeStudentProjects,
+    getAISuggestions: AI.getAISuggestions,
+    createAISuggestions: AI.createAISuggestions,
+    getStoredAnalysis: AI.getStoredAnalysis,
 
     // Assistant
-    getAssistantResponse: async (prompt: string, code?: string): Promise<{ response: string }> => {
-        const response = await api.post('/api/assistant', { prompt, code });
-        return response.data;
-    },
+    getAssistantResponse: Assistant.getAssistantResponse,
+    clearAssistant: Assistant.clearAssistant,
+    addSystemMessage: Assistant.addSystemMessage,
 
     // Suggestions CRUD
-    getSuggestions: async (studentId: string): Promise<Suggestion[]> => {
-        const response = await api.get(`/api/students/${studentId}/suggestions`);
-        if (response.status === 404) {
-            alert("Make sure the code analysis has been run before generating suggestions");
-            return [];
-        }
-        return response.data;
-    },
-
-    createSuggestion: async (studentId: string, suggestion: string): Promise<Suggestion> => {
-        const response = await api.post(`/api/students/${studentId}/suggestions`, {
-            suggestion,
-        });
-        return response.data;
-    },
-
-    updateSuggestion: async (suggestionId: string, suggestion: string): Promise<Suggestion> => {
-        const response = await api.put(`/api/suggestions/${suggestionId}`, {
-            suggestion,
-        });
-        return response.data;
-    },
-
-    deleteSuggestion: async (suggestionId: string): Promise<void> => {
-        await api.delete(`/api/suggestions/${suggestionId}`);
-    },
+    getSuggestions: Suggestions.getSuggestions,
+    createSuggestion: Suggestions.createSuggestion,
+    updateSuggestion: Suggestions.updateSuggestion,
+    deleteSuggestion: Suggestions.deleteSuggestion,
 
     // Authentication
-    login: async (): Promise<void> => {
-        window.location.href = `${API_BASE_URL}/api/auth/login`;
-    },
+    login: Auth.login,
+    logout: Auth.logout,
 
-    logout: async (): Promise<void> => {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user');
-    },
-
-    // GitLa
-    async syncGitlabProjects(gitlabUsername: string): Promise<any> {
-        console.log(gitlabUsername);
-        const response = await api.post('api/students/sync',
-            { gitlab_username: gitlabUsername },
-        );
-        return response.data;
-    },
+    // Students
+    syncGitlabProjects: Students.syncGitlabProjects,
 
     // Projects
-    getStudentProjects: async (studentId: string): Promise<StudentProjects> => {
-        const response = await api.get(`/api/student/${studentId}/projects`);
-        return response.data;
-    },
-
-    getStoredAnalysis: async (studentId: string): Promise<{ analysis: { analysis: string, created_at: string } } | null> => {
-        try {
-            const response = await api.get(`/api/ai-get-analysis/${studentId}`);
-            return response.data;
-        } catch (error) {
-            return null;
-        }
-    },
+    getStudentProjects: Students.getStudentProjects,
 }; 

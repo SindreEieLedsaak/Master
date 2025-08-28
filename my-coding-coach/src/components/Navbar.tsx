@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/contexts/user/UserContext';
 import { apiClient } from '@/lib/api';
 import { Code, BookOpen, Lightbulb, User, LogOut, FolderOpen } from 'lucide-react';
 import Link from 'next/link';

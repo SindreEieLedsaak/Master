@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Send, Bot, User, X } from 'lucide-react';
 import { SimpleFormattedText } from '@/utils/textFormatter';
 
 interface Message {
     id: string;
     text: string;
-    isUser: boolean;
+    role: 'user' | 'assistant' | 'system';
     timestamp: Date;
 }
 
@@ -15,11 +15,16 @@ interface AssistantChatProps {
     onSendMessage: (message: string) => Promise<void>;
     messages: Message[];
     isLoading?: boolean;
-    onResetAssistant: () => void;
+    onResetAssistant: () => Promise<void>
 }
 
 export default function AssistantChat({ onSendMessage, messages, isLoading, onResetAssistant }: AssistantChatProps) {
     const [input, setInput] = useState('');
+    const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages, isLoading]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -28,6 +33,10 @@ export default function AssistantChat({ onSendMessage, messages, isLoading, onRe
             setInput('');
         }
     };
+
+
+
+    const visibleMessages = messages.filter(m => m.role === 'user' || m.role === 'assistant');
 
     return (
         <div className="bg-white rounded-lg shadow h-96 flex flex-col">
@@ -47,22 +56,22 @@ export default function AssistantChat({ onSendMessage, messages, isLoading, onRe
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((message) => (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4" >
+                {visibleMessages.map((message) => (
                     <div
                         key={message.id}
-                        className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                         <div
-                            className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.isUser
+                            className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.role === 'user'
                                 ? 'bg-blue-600 text-white'
                                 : 'bg-gray-100 text-gray-900'
                                 }`}
                         >
                             <div className="flex items-start">
-                                {!message.isUser && <Bot className="h-4 w-4 mr-2 mt-0.5 text-blue-600" />}
+                                {message.role === 'assistant' && <Bot className="h-4 w-4 mr-2 mt-0.5 text-blue-600" />}
                                 <div className="flex-1">
-                                    {message.isUser ? (
+                                    {message.role === 'user' ? (
                                         <p className="text-sm">{message.text}</p>
                                     ) : (
                                         <div className="text-sm">
@@ -73,9 +82,10 @@ export default function AssistantChat({ onSendMessage, messages, isLoading, onRe
                                         {message.timestamp.toLocaleString()}
                                     </p>
                                 </div>
-                                {message.isUser && <User className="h-4 w-4 ml-2 mt-0.5" />}
+                                {message.role === 'user' && <User className="h-4 w-4 ml-2 mt-0.5" />}
                             </div>
                         </div>
+                        <div ref={messagesEndRef} />
                     </div>
                 ))}
                 {isLoading && (

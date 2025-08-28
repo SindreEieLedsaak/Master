@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/contexts/user/UserContext';
 import { User, GitBranch, Calendar, TrendingUp } from 'lucide-react';
 
 export default function ProfilePage() {
