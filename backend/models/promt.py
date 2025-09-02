@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+class SystemMessageRequest(BaseModel):
+    message: str
 
 class AssistantRequest(BaseModel):
     prompt: str

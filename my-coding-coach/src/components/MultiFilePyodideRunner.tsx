@@ -136,7 +136,8 @@ export default function MultiFilePyodideRunner({
                 setOutput(`Pyodide ready! Python version: ${version}\nYou can now run Python code.`);
                 setStatus('idle');
             } catch (error: any) {
-                setOutput(`Failed to initialize Pyodide: ${error.message}`);
+                const msg = (typeof error === 'string') ? error : (error?.message || error?.toString?.() || 'Unknown error');
+                setOutput(`Failed to initialize Pyodide: ${msg}`);
                 setStatus('error');
             }
         };
@@ -145,6 +146,7 @@ export default function MultiFilePyodideRunner({
     }, []);
 
     const runCode = async () => {
+        let pyodide: any = null;
         if (!files.length) {
             setOutput('No files to run');
             return;
@@ -160,7 +162,7 @@ export default function MultiFilePyodideRunner({
         setOutput('Running your code...');
 
         try {
-            const pyodide = await PyodideLoader.getInstance().loadPyodide();
+            pyodide = await PyodideLoader.getInstance().loadPyodide();
 
             // Set up stdout/stderr capture
             pyodide.runPython(`
@@ -199,8 +201,9 @@ export default function MultiFilePyodideRunner({
 
             // Get output
             const stdout = pyodide.runPython("sys.stdout.getvalue()");
+            console.log("stdout", stdout);
             const stderr = pyodide.runPython("sys.stderr.getvalue()");
-
+            console.log("stderr", stderr);
             if (stderr) {
                 setOutput(`Error:\n${stderr}`);
                 setStatus('error');
@@ -222,8 +225,10 @@ export default function MultiFilePyodideRunner({
             }
 
         } catch (error: any) {
-            const errorMessage = error.message || 'An error occurred while running the code';
-            setOutput(`Error: ${errorMessage}`);
+            console.log("Error running code:", error);
+
+            let errorMessage = pyodide.runPython("sys.stderr.getvalue()") || error.message || error.toString() || 'Unknown error';
+            setOutput(`Error:\n${errorMessage}`);
             setStatus('error');
             onError?.(errorMessage);
         } finally {
@@ -251,7 +256,8 @@ export default function MultiFilePyodideRunner({
             setOutput(`Pyodide ready! Python version: ${version}\nYou can now run Python code.`);
             setStatus('idle');
         } catch (error: any) {
-            setOutput(`Failed to initialize Pyodide: ${error.message}`);
+            const msg = (typeof error === 'string') ? error : (error?.message || error?.toString?.() || 'Unknown error');
+            setOutput(`Failed to initialize Pyodide: ${msg}`);
             setStatus('error');
         }
     };

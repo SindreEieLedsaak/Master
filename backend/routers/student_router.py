@@ -5,6 +5,8 @@ from backend.models.student import Student
 from backend.services.suggestion_service import SuggestionService
 from backend.models.suggestion import SuggestionInDB
 from typing import List
+from backend.models.editor_state import SaveEditorStateRequest, EditorStateResponse
+from backend.mongodb.MongoDB import get_db_connection
 
 router = APIRouter()
 
@@ -77,4 +79,32 @@ def sync_student(
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e)) 
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/students/{user_id}/editor-state", tags=["Students"], response_model=EditorStateResponse)
+def save_editor_state(user_id: str, payload: SaveEditorStateRequest):
+    """Save the current editor files/active file and optional task for a user."""
+    try:
+        db = get_db_connection("students")
+        coll = db["editor_state"]
+        doc = payload.model_dump()
+        coll.update_one({"user_id": user_id}, {"$set": doc}, upsert=True)
+        saved = coll.find_one({"user_id": user_id}, {"_id": 0})
+        return saved
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/students/{user_id}/editor-state", tags=["Students"], response_model=EditorStateResponse)
+def load_editor_state(user_id: str):
+    """Load the last saved editor state for a user if present."""
+    try:
+        db = get_db_connection("students")
+        coll = db["editor_state"]
+        doc = coll.find_one({"user_id": user_id}, {"_id": 0})
+        if not doc:
+            raise HTTPException(status_code=404, detail="No editor state found")
+        return doc
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) 

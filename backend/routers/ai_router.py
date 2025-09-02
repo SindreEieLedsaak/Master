@@ -1,4 +1,7 @@
 from fastapi import APIRouter, HTTPException
+from backend.analyzer.project_analyzer import ProjectAnalyzer
+from backend.models.promt import AssistantRequest, AssistantResponse, SystemMessageRequest
+from backend.ai.assistant import Assistant
 from backend.analyzer.ai_project_analyzer import AIProjectAnalyzer
 
 router = APIRouter()
@@ -41,6 +44,18 @@ async def get_suggestions(student_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/assistant/add-system-message")
+async def add_system_message(request: SystemMessageRequest):
+    """
+    Adds a system message to the assistant.
+    """
+    try:
+        assistant = Assistant.get_instance()
+        assistant.add_system_message(request.message)
+        return {"message": "System message added"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.delete("/ai-delete-all-suggestions/{student_id}")
 async def delete_all_suggestions(student_id: str):
     """
@@ -78,5 +93,36 @@ async def delete_suggestion(student_id: str, suggestion_id: str):
         analyzer = AIProjectAnalyzer(student_id)
         result = analyzer.delete_project_suggestions(suggestion_id)
         return {"message": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/assistant/clear")
+async def clear_assistant_messages():
+    """
+    Clears all assistant messages.
+    """
+    try:
+        assistant = Assistant.get_instance()
+        assistant.reset_conversation()
+        return {"message": "Assistant messages cleared"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/assistant", response_model=AssistantResponse)
+async def get_assistant_response(request: AssistantRequest):
+    assistant = Assistant.get_instance()
+    
+    response = assistant.get_assistant_response(request.prompt, request.code)
+    return AssistantResponse(response=response)
+
+@router.get("/analyze-student-projects/{student_id}")
+async def analyze_student_projects(student_id: str):
+    """
+    Analyzes all Python projects for a given student.
+    """
+    try:
+        project_analyzer = ProjectAnalyzer()
+        feedback = project_analyzer.analyze_student_projects(student_id)
+        return feedback
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

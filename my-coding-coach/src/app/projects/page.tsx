@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/contexts/user/UserContext';
 import { apiClient, Project, StudentProjects, AIAnalysis } from '@/lib/api';
 import { FolderOpen, Code2, Calendar, FileText, BarChart3, RefreshCw, Eye, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -270,10 +270,10 @@ export default function ProjectsPage() {
                             Sync your GitLab projects to get started with code analysis.
                         </p>
                         <button
-                            onClick={() => window.location.href = '/profile'}
+                            onClick={() => window.location.href = '/'}
                             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
                         >
-                            Go to Profile to Sync Projects
+                            Go to Dashboard to Sync Projects
                         </button>
                     </div>
                 )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/contexts/user/UserContext';
 import { apiClient, CodeAnalysis } from '@/lib/api';
 import MultiFileEditor, { MultiFileEditorRef } from '@/components/MultiFileEditor';
 import MultiFilePyodideRunner from '@/components/MultiFilePyodideRunner';
@@ -14,7 +14,7 @@ import { FormattedAIText } from '@/utils/textFormatter';
 interface Message {
     id: string;
     text: string;
-    isUser: boolean;
+    role: 'user' | 'assistant' | 'system';
     timestamp: Date;
 }
 
@@ -35,6 +35,8 @@ interface TaskData {
 export default function EditorPage() {
     const { user } = useUser();
     // EditorPage – change initial files state
+    const [lastRunOutput, setLastRunOutput] = useState<string>('');
+    const [lastRunError, setLastRunError] = useState<string>('');
     const [files, setFiles] = useState<File[]>(() => {
         if (typeof window !== 'undefined') {
             const taskmode = sessionStorage.getItem('taskmode');
@@ -91,7 +93,7 @@ export default function EditorPage() {
             {
                 id: '1',
                 text: 'Hello! I\'m your AI coding assistant. I can help you understand your code, explain concepts, and provide guidance. What would you like to know?',
-                isUser: false,
+                role: 'assistant',
                 timestamp: new Date(),
             },
         ];
@@ -100,6 +102,8 @@ export default function EditorPage() {
     const [showPyodide, setShowPyodide] = useState(true);
 
     const editorRef = useRef<MultiFileEditorRef>(null);
+    const hasLoadedServerStateRef = useRef(false);
+    const saveTimerRef = useRef<any>(null);
 
 
     useEffect(() => {
@@ -133,6 +137,35 @@ export default function EditorPage() {
         }
     }, []);
 
+    // Load saved editor state (files/active file/task) once when user arrives
+    useEffect(() => {
+        if (!user?.id || hasLoadedServerStateRef.current) return;
+        (async () => {
+            try {
+                const state: any = await apiClient.loadEditorState(user.id);
+                if (state?.files?.length) {
+                    setFiles(state.files);
+                }
+                if (state?.active_file) {
+                    setActiveFile(state.active_file);
+                }
+                if (state?.task) {
+                    setCurrentTask({
+                        id: state.task.id,
+                        title: state.task.title ?? '',
+                        description: state.task.description ?? '',
+                        fullContent: state.task.description ?? '',
+                    });
+                    setShowTaskPanel(true);
+                }
+            } catch (e: any) {
+                // Ignore 404 (no state yet)
+            } finally {
+                hasLoadedServerStateRef.current = true;
+            }
+        })();
+    }, [user?.id]);
+
     useEffect(() => {
         sessionStorage.setItem('files', JSON.stringify(files));
         sessionStorage.setItem('activeFile', activeFile);
@@ -141,6 +174,25 @@ export default function EditorPage() {
     useEffect(() => {
         sessionStorage.setItem('messages', JSON.stringify(messages));
     }, [messages])
+
+    // Auto-save editor state to backend (debounced)
+    useEffect(() => {
+        if (!user?.id) return;
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(() => {
+            const payload: any = {
+                files,
+                active_file: activeFile,
+                task: currentTask
+                    ? { id: currentTask.id, title: currentTask.title, description: currentTask.description }
+                    : undefined,
+            };
+            apiClient.saveEditorState(user.id, payload).catch(() => { /* silent */ });
+        }, 1000);
+        return () => {
+            if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        };
+    }, [files, activeFile, currentTask, user?.id]);
 
     const loadTaskFromData = (taskData: TaskData) => {
         setCurrentTask(taskData);
@@ -151,7 +203,7 @@ export default function EditorPage() {
         const taskContextMessage: Message = {
             id: `task-${Date.now()}`,
             text: `🎯 **New Learning Task Started!**\n\n**Task:** ${taskData.title}\n\n**Description:** ${taskData.description}\n\nI'm here to help you complete this task step by step. Feel free to ask me questions about the requirements, coding concepts, or if you get stuck on any part!`,
-            isUser: false,
+            role: 'assistant',
             timestamp: new Date(),
         };
 
@@ -171,7 +223,7 @@ export default function EditorPage() {
             const celebrationMessage: Message = {
                 id: `celebration-${Date.now()}`,
                 text: `🎉 **Congratulations!** You've successfully completed the task: "${currentTask.title}"\n\nGreat job! This task helped you practice important programming concepts. Would you like me to review your solution or help you with a new challenge?`,
-                isUser: false,
+                role: 'assistant',
                 timestamp: new Date(),
             };
 
@@ -195,7 +247,7 @@ export default function EditorPage() {
         const exitMessage: Message = {
             id: `exit-task-${Date.now()}`,
             text: `You have exited the current task. I'm back to being a general-purpose coding assistant. How can I help?`,
-            isUser: false,
+            role: 'assistant',
             timestamp: new Date(),
         };
         setMessages(prev => [...prev, exitMessage]);
@@ -210,22 +262,49 @@ export default function EditorPage() {
         }
     };
 
-    const handleResetAssistant = () => {
+    const handleResetAssistant = async () => {
+        try {
+            await apiClient.clearAssistant();
+        } catch (e) {
+            console.error('Failed to clear assistant on server:', e);
+        }
         setMessages([
             {
                 id: '1',
                 text: 'Hello! I\'m your AI coding assistant. I can help you understand your code, explain concepts, and provide guidance. What would you like to know?',
-                isUser: false,
+                role: 'assistant',
                 timestamp: new Date(),
             },
         ]);
+    };
+    const handlePyodideError = (error: string) => {
+        setLastRunError(error);
+        setMessages(prev => [...prev, {
+            id: `run-err-${Date.now()}`,
+            text: `Runtime error:\n\n${error}`,
+            role: 'system',
+            timestamp: new Date(),
+        }]);
+        apiClient.addSystemMessage(`Runtime error:\n\n${error}`);
+    };
+    const handlePyodideOutput = (output: string) => {
+        setLastRunOutput(output);
+        setMessages(prev => [...prev, {
+            id: `run-out-${Date.now()}`,
+            text: `Runtime output:\n\n${output}`,
+            role: 'system',
+            timestamp: new Date(),
+        }]);
+        const message = `Runtime output:\n\n${output}`;
+        console.log("message", message)
+        apiClient.addSystemMessage(message);
     };
 
     const handleAssistantMessage = async (message: string) => {
         const userMessage: Message = {
             id: Date.now().toString(),
             text: message,
-            isUser: true,
+            role: 'user',
             timestamp: new Date(),
         };
 
@@ -252,7 +331,7 @@ Please provide helpful guidance that's specifically relevant to this learning ta
             const assistantMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 text: response.response,
-                isUser: false,
+                role: 'assistant',
                 timestamp: new Date(),
             };
 
@@ -370,8 +449,8 @@ Please provide helpful guidance that's specifically relevant to this learning ta
                             <MultiFilePyodideRunner
                                 files={files}
                                 activeFile={activeFile}
-                                onOutput={(output) => console.log('Code output:', output)}
-                                onError={(error) => console.error('Code error:', error)}
+                                onOutput={handlePyodideOutput}
+                                onError={handlePyodideError}
                             />
                         </div>
 

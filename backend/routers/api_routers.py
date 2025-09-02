@@ -40,10 +40,5 @@ async def run_python(code_input: CodeInput):
     except subprocess.CalledProcessError as e:
         raise HTTPException(status_code=400, detail=e.stderr)
 
-@router.post("/assistant", response_model=AssistantResponse)
-async def get_assistant_response(request: AssistantRequest):
-    assistant = Assistant.get_instance()
-    
-    response = assistant.get_assistant_response(request.prompt, request.code)
-    return AssistantResponse(response=response)
+
 

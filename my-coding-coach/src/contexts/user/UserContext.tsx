@@ -1,18 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { User, UserContextType } from './UserModels';
 
-interface User {
-    id: string;
-    gitlab_username: string;
-    name?: string;
-}
-
-interface UserContextType {
-    user: User | null;
-    setUser: (user: User | null) => void;
-    isLoading: boolean;
-}
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/contexts/user/UserContext';
 import { apiClient } from '@/lib/api';
 import { Code, Lightbulb, BookOpen, TrendingUp, Bot, Terminal, ShieldCheck, GitMerge } from 'lucide-react';
 import Link from 'next/link';
@@ -40,9 +40,9 @@ const Dashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
+      <div className="mb-8 flex flex-col items-center justify-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Welcome back, {user?.gitlab_username}!
+          Welcome, {user?.gitlab_username}!
         </h1>
         <p className="text-gray-600">
           Ready to improve your coding skills? Let's get started.
@@ -79,16 +79,17 @@ const Dashboard = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Task Suggestions</h3>
           <p className="text-gray-600 text-sm">Get personalized project recommendations</p>
         </Link>
+        <Link href="/projects" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
+          <GitMerge className="h-8 w-8 text-purple-600 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Projects</h3>
+          <p className="text-gray-600 text-sm">View your projects</p>
+        </Link>
         <Link href="/resources" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
           <BookOpen className="h-8 w-8 text-green-600 mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Resources</h3>
           <p className="text-gray-600 text-sm">Learning materials and documentation</p>
         </Link>
-        <Link href="/profile" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
-          <TrendingUp className="h-8 w-8 text-purple-600 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Progress</h3>
-          <p className="text-gray-600 text-sm">Track your learning journey</p>
-        </Link>
+
       </div>
     </div>
   );

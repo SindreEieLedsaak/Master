@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/contexts/user/UserContext';
 
 export default function AuthCallbackPage() {
     return (

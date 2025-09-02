@@ -1,10 +1,30 @@
 'use client';
 
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/contexts/user/UserContext';
 import { User, GitBranch, Calendar, TrendingUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { apiClient } from '@/lib/api';
 
 export default function ProfilePage() {
     const { user } = useUser();
+    const [projectCount, setProjectCount] = useState<number>(0);
+    const [fileCount, setFileCount] = useState<number>(0);
+
+    useEffect(() => {
+        const fetchCounts = async () => {
+            if (!user?.id) return;
+            try {
+                const proj = await apiClient.getNumberOfProjects(user.id);
+                const files = await apiClient.getNumberOfFiles(user.id);
+                // Both endpoints return { count: number }
+                setProjectCount((proj as any).count ?? 0);
+                setFileCount((files as any).count ?? 0);
+            } catch (e) {
+                // ignore for now
+            }
+        };
+        fetchCounts();
+    }, [user?.id]);
 
     if (!user) {
         return (
@@ -63,43 +83,23 @@ export default function ProfilePage() {
                         </div>
                     </div>
 
-                    {/* Progress Stats */}
+                    {/* Sync Projects */}
                     <div className="lg:col-span-2">
                         <div className="bg-white rounded-lg shadow p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Learning Progress</h3>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Sync Projects</h3>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <div className="text-center">
-                                    <div className="text-2xl font-bold text-blue-600 mb-2">0</div>
-                                    <div className="text-sm text-gray-600">Code Submissions</div>
+                                    <div className="text-2xl font-bold text-blue-600 mb-2">{projectCount}</div>
+                                    <div className="text-sm text-gray-600">Projects</div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="text-2xl font-bold text-green-600 mb-2">0</div>
-                                    <div className="text-sm text-gray-600">Tasks Completed</div>
+                                    <div className="text-2xl font-bold text-green-600 mb-2">{fileCount}</div>
+                                    <div className="text-sm text-gray-600">Files</div>
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
-                                <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm font-medium text-gray-700">Code Quality</span>
-                                        <span className="text-sm text-gray-600">0%</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
-                                        <div className="bg-blue-600 h-2 rounded-full" style={{ width: '0%' }}></div>
-                                    </div>
-                                </div>
 
-                                <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm font-medium text-gray-700">Learning Progress</span>
-                                        <span className="text-sm text-gray-600">0%</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
-                                        <div className="bg-green-600 h-2 rounded-full" style={{ width: '0%' }}></div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

@@ -29,7 +29,8 @@ class Assistant:
                 },
                 api_version="2024-10-21",
             )
-            self.conversation_history = [{"role": "system", "content": system_prompt}]
+            self.conversation_history = []
+            self.add_system_message(system_prompt)
             Assistant._initialized = True
 
     @classmethod
@@ -41,11 +42,18 @@ class Assistant:
             cls._instance = cls()
         return cls._instance
 
+    def add_system_message(self, message: str):
+        """
+        Add a system message to the conversation history.
+        """
+        self.conversation_history.append({"role": "system", "content": message})
+
     def reset_conversation(self):
         """
         Reset the conversation history if needed.
         """
         self.conversation_history = []
+        self.add_system_message(system_prompt)
 
     def get_assistant_response(self, prompt: str, code: str | None = None) -> str:
         """
@@ -62,7 +70,6 @@ class Assistant:
                 messages=self.conversation_history + [{"role": "user", "content": code}]
             )
             self.conversation_history.append({"role": "assistant", "content": response.choices[0].message.content.strip() or ""})
-            print(self.conversation_history)
             return response.choices[0].message.content.strip() or ""
         except Exception as e:
             print(f"Error getting assistant response: {e}")
