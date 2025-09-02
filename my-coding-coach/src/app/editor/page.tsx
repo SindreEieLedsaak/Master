@@ -10,6 +10,7 @@ import AssistantChat from '@/components/AssistantChat';
 import { Bot, MessageSquare, BookOpen, X, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { FormattedAIText } from '@/utils/textFormatter';
+import { API_BASE_URL } from '@/lib/http';
 
 interface Message {
     id: string;
@@ -352,7 +353,7 @@ Please provide helpful guidance that's specifically relevant to this learning ta
                         Please log in to access the code editor
                     </h1>
                     <button
-                        onClick={() => window.location.href = 'http://localhost:8000/api/auth/login'}
+                        onClick={() => window.location.href = `${API_BASE_URL}/api/auth/login`}
                         className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
                     >
                         Login with GitLab

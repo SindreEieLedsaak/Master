@@ -4,6 +4,7 @@ import { useUser } from '@/contexts/user/UserContext';
 import { User, GitBranch, Calendar, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api';
+import { API_BASE_URL } from '@/lib/http';
 
 export default function ProfilePage() {
     const { user } = useUser();
@@ -34,7 +35,7 @@ export default function ProfilePage() {
                         Please log in to view your profile
                     </h1>
                     <button
-                        onClick={() => window.location.href = 'http://localhost:8000/api/auth/login'}
+                        onClick={() => window.location.href = `${API_BASE_URL}/api/auth/login`}
                         className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
                     >
                         Login with GitLab
