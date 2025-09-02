@@ -41,4 +41,8 @@ export const apiClient = {
     getStudentProjects: Students.getStudentProjects,
     getNumberOfProjects: Students.getNumberOfProjects,
     getNumberOfFiles: Students.getNumberOfFiles,
+
+    // Editor state
+    loadEditorState: Students.loadEditorState,
+    saveEditorState: Students.saveEditorState,
 }; 

@@ -20,3 +20,32 @@ export async function getNumberOfFiles(studentId: string): Promise<number> {
     const response = await api.get(`/api/student/${studentId}/files/count`);
     return response.data;
 }
+
+export interface EditorFileDTO {
+    name: string;
+    content: string;
+    language: string;
+}
+
+export interface TaskInfoDTO {
+    id: string;
+    title?: string;
+    description?: string;
+}
+
+export interface EditorStateDTO {
+    user_id: string;
+    files: EditorFileDTO[];
+    active_file: string;
+    task?: TaskInfoDTO;
+}
+
+export async function saveEditorState(userId: string, state: Omit<EditorStateDTO, 'user_id'>): Promise<EditorStateDTO> {
+    const response = await api.post(`/api/students/${userId}/editor-state`, { user_id: userId, ...state });
+    return response.data;
+}
+
+export async function loadEditorState(userId: string): Promise<EditorStateDTO> {
+    const response = await api.get(`/api/students/${userId}/editor-state`);
+    return response.data;
+}

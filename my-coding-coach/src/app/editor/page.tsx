@@ -102,6 +102,8 @@ export default function EditorPage() {
     const [showPyodide, setShowPyodide] = useState(true);
 
     const editorRef = useRef<MultiFileEditorRef>(null);
+    const hasLoadedServerStateRef = useRef(false);
+    const saveTimerRef = useRef<any>(null);
 
 
     useEffect(() => {
@@ -135,6 +137,35 @@ export default function EditorPage() {
         }
     }, []);
 
+    // Load saved editor state (files/active file/task) once when user arrives
+    useEffect(() => {
+        if (!user?.id || hasLoadedServerStateRef.current) return;
+        (async () => {
+            try {
+                const state: any = await apiClient.loadEditorState(user.id);
+                if (state?.files?.length) {
+                    setFiles(state.files);
+                }
+                if (state?.active_file) {
+                    setActiveFile(state.active_file);
+                }
+                if (state?.task) {
+                    setCurrentTask({
+                        id: state.task.id,
+                        title: state.task.title ?? '',
+                        description: state.task.description ?? '',
+                        fullContent: state.task.description ?? '',
+                    });
+                    setShowTaskPanel(true);
+                }
+            } catch (e: any) {
+                // Ignore 404 (no state yet)
+            } finally {
+                hasLoadedServerStateRef.current = true;
+            }
+        })();
+    }, [user?.id]);
+
     useEffect(() => {
         sessionStorage.setItem('files', JSON.stringify(files));
         sessionStorage.setItem('activeFile', activeFile);
@@ -143,6 +174,25 @@ export default function EditorPage() {
     useEffect(() => {
         sessionStorage.setItem('messages', JSON.stringify(messages));
     }, [messages])
+
+    // Auto-save editor state to backend (debounced)
+    useEffect(() => {
+        if (!user?.id) return;
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(() => {
+            const payload: any = {
+                files,
+                active_file: activeFile,
+                task: currentTask
+                    ? { id: currentTask.id, title: currentTask.title, description: currentTask.description }
+                    : undefined,
+            };
+            apiClient.saveEditorState(user.id, payload).catch(() => { /* silent */ });
+        }, 1000);
+        return () => {
+            if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        };
+    }, [files, activeFile, currentTask, user?.id]);
 
     const loadTaskFromData = (taskData: TaskData) => {
         setCurrentTask(taskData);
