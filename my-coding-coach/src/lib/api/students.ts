@@ -9,4 +9,14 @@ export async function syncGitlabProjects(gitlabUsername: string): Promise<any> {
 export async function getStudentProjects(studentId: string): Promise<StudentProjects> {
     const response = await api.get(`/api/student/${studentId}/projects`);
     return response.data;
-} 
+}
+
+export async function getNumberOfProjects(studentId: string): Promise<number> {
+    const response = await api.get(`/api/student/${studentId}/projects/count`);
+    return response.data;
+}
+
+export async function getNumberOfFiles(studentId: string): Promise<number> {
+    const response = await api.get(`/api/student/${studentId}/files/count`);
+    return response.data;
+}

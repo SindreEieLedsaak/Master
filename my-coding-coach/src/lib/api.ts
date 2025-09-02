@@ -39,4 +39,6 @@ export const apiClient = {
 
     // Projects
     getStudentProjects: Students.getStudentProjects,
+    getNumberOfProjects: Students.getNumberOfProjects,
+    getNumberOfFiles: Students.getNumberOfFiles,
 }; 
