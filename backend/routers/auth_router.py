@@ -3,14 +3,27 @@ from starlette.responses import RedirectResponse
 from backend.services.auth_service import AuthService
 from backend.services.student_service import StudentService
 from datetime import timedelta
+import os
+from urllib.parse import urlparse
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
+MODE = os.getenv('MODE', 'dev')
+backend_url = os.getenv("BACKEND_URL")
+frontend_url = os.getenv("FRONTEND_URL")
+
+if MODE == "dev":
+    backend_url = "http://localhost:8000"
+    frontend_url = "http://localhost:3000"
+else:
+    backend_url = os.getenv("BACKEND_URL")
+    frontend_url = os.getenv("FRONTEND_URL")
+
 @router.get('/login')
 async def login(request: Request, auth_service: AuthService = Depends()):
-    redirect_uri = 'http://localhost:8000/api/auth/callback'
+    redirect_uri = f'{backend_url}/api/auth/callback'
     oauth = auth_service.get_oauth()
     if not oauth or not hasattr(oauth, "gitlab") or oauth.gitlab is None:
         return RedirectResponse(url="/login?error=oauth_not_configured")
@@ -40,9 +53,17 @@ async def auth_callback(
             expires_delta=access_token_expires
         )
 
+        if MODE == "dev":
+            cookie_domain = "localhost"
+            use_secure = False
+        else:
+            parsed_frontend = urlparse(frontend_url)
+            cookie_domain = parsed_frontend.hostname or 'localhost'
+            use_secure = parsed_frontend.scheme == 'https'
+
         # Create redirect response
         response = RedirectResponse(
-            url=f"http://localhost:3000/auth/callback?token={access_token}&user_id={student.id}&username={student.gitlab_username}"
+            url=f"{frontend_url}/auth/callback?token={access_token}&user_id={student.id}&username={student.gitlab_username}"
         )
         
         # Store GitLab token in secure cookie
@@ -52,9 +73,9 @@ async def auth_callback(
             value=encrypted_token,
             max_age=expires_in,  # Use GitLab token expiration
             httponly=True,       # Prevent XSS
-            secure=False,        # Set to True for production HTTPS
-            samesite="lax",      # CSRF protection
-            domain="localhost"   # Ensure cookie is accessible across localhost ports
+            secure=use_secure,   # HTTPS in production
+            samesite="lax",     # CSRF protection
+            domain=cookie_domain # Cookie domain aligned with frontend
         )
         
         return response

@@ -7,6 +7,7 @@ import { Lightbulb, RefreshCw, Play, ChevronDown, ChevronUp, Trash } from 'lucid
 import toast from 'react-hot-toast';
 import { FormattedAIText } from '@/utils/textFormatter';
 import { useRouter } from 'next/navigation';
+import { API_BASE_URL } from '@/lib/http';
 
 interface TaskData {
     id: string;
@@ -144,7 +145,7 @@ export default function SuggestionsPage() {
                         Please log in to view suggestions
                     </h1>
                     <button
-                        onClick={() => window.location.href = 'http://localhost:8000/api/auth/login'}
+                        onClick={() => window.location.href = `${API_BASE_URL}/api/auth/login`}
                         className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
                     >
                         Login with GitLab
