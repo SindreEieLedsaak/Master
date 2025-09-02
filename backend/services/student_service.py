@@ -51,7 +51,6 @@ class StudentService:
             gitlab_username=student.gitlab_username,
             gitlab_token=decrypted_token)
 
-        print(result)
 
         return result
 
