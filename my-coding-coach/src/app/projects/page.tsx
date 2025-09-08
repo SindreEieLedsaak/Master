@@ -6,6 +6,7 @@ import { apiClient, Project, StudentProjects, AIAnalysis } from '@/lib/api';
 import { FolderOpen, Code2, Calendar, FileText, BarChart3, RefreshCw, Eye, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatAIResponseText } from '@/utils/textFormatter';
+import TopRightLoader from '@/components/TopRightLoader';
 
 export default function ProjectsPage() {
     const { user } = useUser();
@@ -95,8 +96,11 @@ export default function ProjectsPage() {
         );
     }
 
+    const isBusy = isLoading || isAnalyzing;
+
     return (
         <div className="min-h-screen bg-gray-50">
+            <TopRightLoader visible={isBusy} text={isAnalyzing ? 'Analyzing your projects...' : isLoading ? 'Loading projects...' : ''} />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">

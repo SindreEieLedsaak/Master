@@ -24,7 +24,8 @@ class AIProjectAnalyzer:
             return "No Python code found for this student to analyze."
 
         prompt = self._create_analysis_prompt(all_code)
-        analysis = self.ai_analyzer.get_ai_response(prompt)
+        
+        analysis = self.ai_analyzer.get_ai_response(prompt, add_promt_to_history=False, add_response_to_history=False)
         
         # Store the analysis, replacing any old one for this student
         self.analysis_collection.update_one(
@@ -61,7 +62,7 @@ class AIProjectAnalyzer:
 
 
         prompt = self._create_comprehensive_suggestion_prompt(code_analysis, past_suggestions)
-        suggestions_response = self.ai_analyzer.get_ai_response(prompt)
+        suggestions_response = self.ai_analyzer.get_ai_response(prompt = prompt, add_promt_to_history=False, add_response_to_history=False)
         
 
         parsed_suggestions = self._parse_comprehensive_suggestions(suggestions_response)
@@ -217,6 +218,7 @@ Remember: Base tasks on the student's current Python level and identified improv
             f"{code}\n"
             "```\n\n"
             "Please structure your response in clear sections. Do not just repeat the code back to me."
+            "Please do not start the response with a introduction or end your reponse with an outro, because the user will be reading the response directly and have no possible way to answer you."
         )
         return prompt 
 
@@ -252,5 +254,6 @@ Remember: Base tasks on the student's current Python level and identified improv
                 "created_at": analysis_doc["created_at"]
             }
         return None
+
     
     

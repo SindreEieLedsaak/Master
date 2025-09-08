@@ -6,8 +6,6 @@ from dotenv import load_dotenv
 from cryptography.fernet import Fernet
 import base64
 
-load_dotenv()
-
 # --- OAuth Configuration ---
 GITLAB_URL = os.getenv("GITLAB_URL")
 GITLAB_CLIENT_ID = os.getenv("GITLAB_CLIENT_ID")
@@ -48,6 +46,14 @@ class AuthService:
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
         return encoded_jwt
+    
+    def decode_access_token(self, token: str) -> dict:
+        """Decode and validate a JWT access token, returning the claims dict."""
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            return payload
+        except JWTError as e:
+            raise e
     
     def encrypt_token(self, token: str) -> str:
         """Encrypt a GitLab token for secure storage"""

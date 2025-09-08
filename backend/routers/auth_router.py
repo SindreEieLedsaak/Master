@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, Response
+from fastapi import APIRouter, Request, Depends, Response, HTTPException
 from starlette.responses import RedirectResponse
 from backend.services.auth_service import AuthService
 from backend.services.student_service import StudentService
@@ -32,8 +32,8 @@ async def login(request: Request, auth_service: AuthService = Depends()):
 @router.get('/callback')
 async def auth_callback(
     request: Request, 
-    auth_service: AuthService = Depends(),
-    student_service: StudentService = Depends()
+    auth_service: AuthService = Depends(AuthService),
+    student_service: StudentService = Depends(StudentService)
 ):
     token = await auth_service.get_oauth().gitlab.authorize_access_token(request)
     user_info = token.get('userinfo')
@@ -61,9 +61,9 @@ async def auth_callback(
             cookie_domain = parsed_frontend.hostname or 'localhost'
             use_secure = parsed_frontend.scheme == 'https'
 
-        # Create redirect response
+        # Create redirect response (no token in URL)
         response = RedirectResponse(
-            url=f"{frontend_url}/auth/callback?token={access_token}&user_id={student.id}&username={student.gitlab_username}"
+            url=f"{frontend_url}/auth/callback"
         )
         
         # Store GitLab token in secure cookie
@@ -71,19 +71,54 @@ async def auth_callback(
         response.set_cookie(
             key="gitlab_token",
             value=encrypted_token,
-            max_age=expires_in,  # Use GitLab token expiration
-            httponly=True,       # Prevent XSS
-            secure=use_secure,   # HTTPS in production
-            samesite="lax",     # CSRF protection
-            domain=cookie_domain # Cookie domain aligned with frontend
+            max_age=expires_in,  
+            httponly=True,       
+            secure=use_secure,   
+            samesite="lax",     
+            domain=cookie_domain 
+        )
+        
+        # Store application JWT in secure cookie
+        response.set_cookie(
+            key="app_token",
+            value=access_token,
+            max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            httponly=True,
+            secure=use_secure,
+            samesite="lax",
+            domain=cookie_domain
+        )
+        
+        # Also set a minimal non-HTTP-only user hint (optional) to avoid exposing token
+        response.set_cookie(
+            key="app_user",
+            value=student.gitlab_username,
+            max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            httponly=False,
+            secure=use_secure,
+            samesite="lax",
+            domain=cookie_domain
         )
         
         return response
 
     return RedirectResponse(url="/login?error=true")
 
+@router.get('/me')
+async def me(request: Request, auth_service: AuthService = Depends()):
+    token = request.cookies.get("app_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    try:
+        payload = auth_service.decode_access_token(token)
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    return {"id": payload.get("sub"), "gitlab_username": payload.get("name")}
+
 @router.post('/logout')
 async def logout(response: Response):
-    """Clear the GitLab token cookie"""
+    """Clear authentication cookies"""
     response.delete_cookie("gitlab_token")
+    response.delete_cookie("app_token")
+    response.delete_cookie("app_user")
     return {"message": "Logged out successfully"} 

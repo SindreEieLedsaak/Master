@@ -5,6 +5,9 @@ export async function login(): Promise<void> {
 }
 
 export async function logout(): Promise<void> {
+    try {
+        await fetch(`${API_BASE_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' });
+    } catch { }
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
 } 

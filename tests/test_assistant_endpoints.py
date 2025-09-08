@@ -3,6 +3,8 @@ import sys
 import importlib.util
 import pytest
 from fastapi.testclient import TestClient
+from jose import jwt
+from datetime import datetime, timedelta
 
 # Resolve absolute path to app.py and import it as a module
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -20,6 +22,13 @@ app = app_module.app  # FastAPI instance
 
 from backend.ai.assistant import Assistant
 
+SECRET_KEY = os.getenv("SECRET_KEY", "a_very_secret_key_that_should_be_in_env")
+ALGORITHM = "HS256"
+
+def make_token(sub: str, name: str = "user") -> str:
+    exp = datetime.utcnow() + timedelta(minutes=60)
+    return jwt.encode({"sub": sub, "name": name, "exp": exp}, SECRET_KEY, algorithm=ALGORITHM)
+
 
 @pytest.fixture()
 def client():
@@ -32,7 +41,8 @@ def client():
 # Verifies: endpoint exists, returns 200, and correct JSON message
 # Side-effect: clears assistant history (safe under test)
 def test_clear_assistant_messages(client: TestClient):
-    resp = client.post("/api/assistant/clear")
+    token = make_token(sub='u1')
+    resp = client.post("/api/assistant/clear", cookies={'app_token': token})
     assert resp.status_code == 200
     assert resp.json()["message"] == "Assistant messages cleared"
 
@@ -47,11 +57,12 @@ def test_add_system_message_and_get_response(client: TestClient, monkeypatch: py
 
     monkeypatch.setattr(Assistant, "get_assistant_response", fake_get_response, raising=True)
 
-    resp = client.post("/api/assistant/add-system-message", json={"message": "test system"})
+    token = make_token(sub='u1')
+    resp = client.post("/api/assistant/add-system-message", json={"message": "test system"}, cookies={'app_token': token})
     assert resp.status_code == 200
     assert resp.json()["message"] == "System message added"
 
-    resp2 = client.post("/api/assistant", json={"prompt": "Hello", "code": None})
+    resp2 = client.post("/api/assistant", json={"prompt": "Hello", "code": None}, cookies={'app_token': token})
     assert resp2.status_code == 200
     assert resp2.json()["response"] == "ok-test"
 
