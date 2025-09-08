@@ -3,8 +3,9 @@
 export const dynamic = 'force-dynamic';
 
 import { useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/user/UserContext';
+import { API_BASE_URL } from '@/lib/http';
 
 export default function AuthCallbackPage() {
     return (
@@ -24,25 +25,27 @@ export default function AuthCallbackPage() {
 
 function AuthCallbackInner() {
     const router = useRouter();
-    const searchParams = useSearchParams();
     const { setUser } = useUser();
 
     useEffect(() => {
-        const token = searchParams.get('token');
-        const userId = searchParams.get('user_id');
-        const username = searchParams.get('username');
-
-        if (token && userId && username) {
-            localStorage.setItem('auth_token', token);
-            const user = { id: userId, gitlab_username: username };
-            setUser(user);
-            localStorage.setItem('user', JSON.stringify(user));
-            router.push('/');
-        } else {
-            console.error('Login failed: Token or user info not provided.');
-            router.push('/?error=login_failed');
+        async function bootstrap() {
+            try {
+                // Backend has set HTTP-only cookies. Fetch user info.
+                const res = await fetch(`${API_BASE_URL}/api/auth/me`, { credentials: 'include' });
+                if (!res.ok) throw new Error('Not authenticated');
+                const user = await res.json();
+                setUser(user);
+                localStorage.setItem('user', JSON.stringify(user));
+                // Remove any leftover tokens from previous builds
+                localStorage.removeItem('auth_token');
+                router.push('/');
+            } catch (e) {
+                console.error('Login failed:', e);
+                router.push('/?error=login_failed');
+            }
         }
-    }, [searchParams, router, setUser]);
+        bootstrap();
+    }, [router, setUser]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">

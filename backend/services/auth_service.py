@@ -21,7 +21,7 @@ oauth.register(
 )
 
 # --- JWT Configuration ---
-SECRET_KEY = os.getenv("SECRET_KEY", "a_very_secret_key_that_should_be_in_env")
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -46,6 +46,14 @@ class AuthService:
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
         return encoded_jwt
+    
+    def decode_access_token(self, token: str) -> dict:
+        """Decode and validate a JWT access token, returning the claims dict."""
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            return payload
+        except JWTError as e:
+            raise e
     
     def encrypt_token(self, token: str) -> str:
         """Encrypt a GitLab token for secure storage"""

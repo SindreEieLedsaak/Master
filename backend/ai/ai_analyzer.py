@@ -40,10 +40,6 @@ class AIAnalyzer:
             cls._instance = cls()
         return cls._instance
 
-
-
-
-
     def get_ai_response(self, prompt: str | None = None, add_promt_to_history: bool = True, add_response_to_history: bool = True) -> str:
         """
         Get a response from the AI assistant using the provided prompt.
@@ -60,7 +56,6 @@ class AIAnalyzer:
                     model='gpt-4.1-mini',
                     messages=self.conversation_history + [{"role": "user", "content": prompt}]
                 )
-            print(response.usage)
             if add_response_to_history:
                 self.conversation_history.append({"role": "assistant", "content": response.choices[0].message.content.strip() or ""})
             return response.choices[0].message.content.strip() or ""

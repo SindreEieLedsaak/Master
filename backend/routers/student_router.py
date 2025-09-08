@@ -4,9 +4,10 @@ from backend.services.student_service import StudentService
 from backend.models.student import Student
 from backend.services.suggestion_service import SuggestionService
 from backend.models.suggestion import SuggestionInDB
-from typing import List
+from typing import List, Optional, Dict
 from backend.models.editor_state import SaveEditorStateRequest, EditorStateResponse
 from backend.mongodb.MongoDB import get_db_connection
+from backend.services.auth_service import AuthService
 
 router = APIRouter()
 
@@ -16,14 +17,28 @@ class StudentCreateRequest(BaseModel):
 class StudentSyncRequest(BaseModel):
     gitlab_username: str
 
+# --- Auth dependency ---
+async def get_current_user(request: Request, auth_service: AuthService = Depends(AuthService)) -> Dict[str, str]:
+    token = request.cookies.get("app_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    try:
+        payload = auth_service.decode_access_token(token)
+        return {"id": payload.get("sub"), "gitlab_username": payload.get("name")}
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
 @router.get("/students/{student_id}/suggestions", response_model=List[SuggestionInDB], tags=["Students", "Suggestions"])
 def get_student_suggestions(
     student_id: str,
-    suggestion_service: SuggestionService = Depends(SuggestionService)
+    suggestion_service: SuggestionService = Depends(SuggestionService),
+    current_user: Dict[str, str] = Depends(get_current_user)
 ):
     """
     Retrieves all suggestions for a specific student.
     """
+    if current_user["id"] != student_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     suggestions = suggestion_service.get_all_for_student(student_id)
     
     return suggestions
@@ -31,8 +46,12 @@ def get_student_suggestions(
 @router.post("/students", response_model=Student, tags=["Students"])
 def create_student(
     request: StudentCreateRequest,
-    student_service: StudentService = Depends(StudentService)
+    student_service: StudentService = Depends(StudentService),
+    current_user: Dict[str, str] = Depends(get_current_user)
 ):
+    # Optionally ensure the creator matches the username they're creating
+    if current_user["gitlab_username"] != request.gitlab_username:
+        raise HTTPException(status_code=403, detail="Can only create your own student record")
     try:
         student = student_service.get_or_create_student(request.gitlab_username)
         return student
@@ -40,7 +59,7 @@ def create_student(
         raise HTTPException(status_code=400, detail=str(e)) 
 
 @router.get("/students/test-cookies", tags=["Students"])
-def test_cookies(request: Request):
+def test_cookies(request: Request, current_user: Dict[str, str] = Depends(get_current_user)):
     """Test endpoint to check if cookies are being received"""
     all_cookies = dict(request.cookies)
     gitlab_token = request.cookies.get("gitlab_token")
@@ -54,9 +73,13 @@ def test_cookies(request: Request):
 def sync_student(
     sync_request: StudentSyncRequest,
     request: Request,
-    student_service: StudentService = Depends(StudentService)
+    student_service: StudentService = Depends(StudentService),
+    current_user: Dict[str, str] = Depends(get_current_user)
 ):
 
+    # Ensure the sync is for the logged-in user
+    if current_user["gitlab_username"] != sync_request.gitlab_username:
+        raise HTTPException(status_code=403, detail="Forbidden")
     
     try:
         # Get GitLab token from secure cookie
@@ -82,8 +105,10 @@ def sync_student(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/students/{user_id}/editor-state", tags=["Students"], response_model=EditorStateResponse)
-def save_editor_state(user_id: str, payload: SaveEditorStateRequest):
+def save_editor_state(user_id: str, payload: SaveEditorStateRequest, current_user: Dict[str, str] = Depends(get_current_user)):
     """Save the current editor files/active file and optional task for a user."""
+    if current_user["id"] != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     try:
         db = get_db_connection("students")
         coll = db["editor_state"]
@@ -95,8 +120,10 @@ def save_editor_state(user_id: str, payload: SaveEditorStateRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/students/{user_id}/editor-state", tags=["Students"], response_model=EditorStateResponse)
-def load_editor_state(user_id: str):
+def load_editor_state(user_id: str, current_user: Dict[str, str] = Depends(get_current_user)):
     """Load the last saved editor state for a user if present."""
+    if current_user["id"] != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     try:
         db = get_db_connection("students")
         coll = db["editor_state"]
