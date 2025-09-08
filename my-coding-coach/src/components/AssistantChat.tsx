@@ -16,9 +16,10 @@ interface AssistantChatProps {
     messages: Message[];
     isLoading?: boolean;
     onResetAssistant: () => Promise<void>
+    className?: string;
 }
 
-export default function AssistantChat({ onSendMessage, messages, isLoading, onResetAssistant }: AssistantChatProps) {
+export default function AssistantChat({ onSendMessage, messages, isLoading, onResetAssistant, className }: AssistantChatProps) {
     const [input, setInput] = useState('');
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -34,12 +35,10 @@ export default function AssistantChat({ onSendMessage, messages, isLoading, onRe
         }
     };
 
-
-
     const visibleMessages = messages.filter(m => m.role === 'user' || m.role === 'assistant');
 
     return (
-        <div className="bg-white rounded-lg shadow h-96 flex flex-col">
+        <div className={`bg-white rounded-lg shadow flex flex-col h-full min-h-0 overflow-hidden ${className || ''}`}>
             <div className="p-4 border-b flex items-center justify-between">
                 <h3 className="text-lg font-semibold flex items-center">
                     <Bot className="h-5 w-5 mr-2 text-blue-600" />
@@ -105,7 +104,7 @@ export default function AssistantChat({ onSendMessage, messages, isLoading, onRe
             </div>
 
             {/* Input */}
-            <form onSubmit={handleSubmit} className="p-4 border-t">
+            <form onSubmit={handleSubmit} className="p-4 border-t sticky bottom-0 bg-white">
                 <div className="flex space-x-2">
                     <input
                         type="text"

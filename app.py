@@ -17,7 +17,6 @@ from dotenv import load_dotenv
 from starlette.middleware.sessions import SessionMiddleware
 
 # Import all your routers directly
-from backend.routers.api_routers import router as api_router
 from backend.routers.auth_router import router as auth_router
 from backend.routers.gitlab_router import router as gitlab_router
 from backend.routers.student_router import router as student_router
@@ -50,7 +49,6 @@ app.add_middleware(
 api_v1_router = APIRouter(prefix="/api")
 
 api_v1_router.include_router(auth_router)
-api_v1_router.include_router(api_router)
 api_v1_router.include_router(gitlab_router)
 api_v1_router.include_router(student_router)
 api_v1_router.include_router(ai_router)

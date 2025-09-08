@@ -2,7 +2,7 @@
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import Editor from '@monaco-editor/react';
-import { FileText, Plus, Trash2, Play, Save, X } from 'lucide-react';
+import { FileText, Plus, X } from 'lucide-react';
 
 interface File {
     name: string;
@@ -16,6 +16,9 @@ interface MultiFileEditorProps {
     onFilesChange: (files: File[]) => void;
     onActiveFileChange: (fileName: string) => void;
     onRunCode?: (files: File[], activeFile: string) => void;
+    showHeader?: boolean;
+    showFooter?: boolean;
+    className?: string;
 }
 
 export interface MultiFileEditorRef {
@@ -28,6 +31,9 @@ const MultiFileEditor = forwardRef<MultiFileEditorRef, MultiFileEditorProps>(({
     onFilesChange,
     onActiveFileChange,
     onRunCode,
+    showHeader = true,
+    showFooter = true,
+    className,
 }, ref) => {
     const [newFileName, setNewFileName] = useState<string>('');
 
@@ -40,20 +46,18 @@ const MultiFileEditor = forwardRef<MultiFileEditorRef, MultiFileEditorProps>(({
     };
 
     const updateFileContent = (content: string) => {
-
         const newFiles = files.map(file =>
             file.name === activeFile
                 ? { ...file, content }
                 : file
         );
         onFilesChange(newFiles);
-
     };
 
     const createFile = () => {
         if (!newFileName.trim()) return;
 
-        const fileName = newFileName.endsWith('.py') ? newFileName : `${newFileName}.py`;
+        const fileName = newFileName.trim();
 
         if (files.some(f => f.name === fileName)) {
             alert('File already exists!');
@@ -85,73 +89,73 @@ const MultiFileEditor = forwardRef<MultiFileEditorRef, MultiFileEditorProps>(({
         }
     };
 
-
     return (
-        <div className="border rounded-lg bg-white">
-            {/* File Management Header */}
-            <div className="border-b bg-gray-50 p-4">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Multi-File Editor</h3>
+        <div className={`border rounded-lg bg-white flex flex-col h-full ${className || ''}`}>
+            {showHeader && (
+                <div className="border-b bg-gray-50 p-4">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">Multi-File Editor</h3>
+                    </div>
 
-                </div>
-
-                {/* File Tabs */}
-                <div className="flex items-center space-x-2 mb-4">
-                    {files.map(file => (
-                        <div
-                            key={file.name}
-                            className={`flex items-center px-3 py-1 rounded-md text-sm font-medium transition-colors ${activeFile === file.name
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                }`}
-                        >
-                            <button
-                                onClick={() => onActiveFileChange(file.name)}
-                                className="flex items-center"
+                    {/* File Tabs */}
+                    <div className="flex items-center space-x-2 mb-4">
+                        {files.map(file => (
+                            <div
+                                key={file.name}
+                                className={`flex items-center px-3 py-1 rounded-md text-sm font-medium transition-colors ${activeFile === file.name
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    }`}
                             >
-                                <FileText className="h-4 w-4 mr-1" />
-                                {file.name}
-                            </button>
-                            {files.length > 1 && (
                                 <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        deleteFile(file.name);
-                                    }}
-                                    className="ml-2 text-red-500 hover:text-red-700 p-1"
-                                    title="Delete file"
+                                    onClick={() => onActiveFileChange(file.name)}
+                                    className="flex items-center"
                                 >
-                                    <X className="h-3 w-3" />
+                                    <FileText className="h-4 w-4 mr-1" />
+                                    {file.name}
                                 </button>
-                            )}
-                        </div>
-                    ))}
-                </div>
+                                {files.length > 1 && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteFile(file.name);
+                                        }}
+                                        className="ml-2 text-red-500 hover:text-red-700 p-1"
+                                        title="Delete file"
+                                    >
+                                        <X className="h-3 w-3" />
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                    </div>
 
-                {/* New File Creation */}
-                <div className="flex items-center space-x-2">
-                    <input
-                        type="text"
-                        value={newFileName}
-                        onChange={(e) => setNewFileName(e.target.value)}
-                        placeholder="New file name (e.g., utils.py)"
-                        className="flex-1 px-3 py-1 border border-gray-300 rounded-md text-sm text-black"
-                        onKeyPress={(e) => e.key === 'Enter' && createFile()}
-                    />
-                    <button
-                        onClick={createFile}
-                        className="flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
-                    >
-                        <Plus className="h-4 w-4 mr-1" />
-                        Create File
-                    </button>
+                    {/* New File Creation */}
+                    <div className="flex items-center space-x-2">
+                        <input
+                            type="text"
+                            value={newFileName}
+                            onChange={(e) => setNewFileName(e.target.value)}
+                            placeholder="New file name (e.g., utils.py)"
+                            className="flex-1 px-3 py-1 border border-gray-300 rounded-md text-sm text-black"
+                            onKeyPress={(e) => e.key === 'Enter' && createFile()}
+                        />
+                        <button
+                            onClick={createFile}
+                            className="flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                        >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Create File
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Code Editor */}
-            <div className="h-96">
+            <div className="flex-1 min-h-0">
                 <Editor
-                    height="110%"
+
+                    height="100%"
                     width="100%"
                     language={getActiveFile()?.language || 'python'}
                     value={getActiveFile()?.content || ''}
@@ -163,20 +167,22 @@ const MultiFileEditor = forwardRef<MultiFileEditorRef, MultiFileEditorProps>(({
                         minimap: { enabled: false },
                         fontSize: 14,
                         lineNumbers: 'on',
-                        roundedSelection: false,
+                        roundedSelection: true,
                         scrollBeyondLastLine: false,
                         automaticLayout: true,
                     }}
+
                 />
             </div>
 
-            {/* File Info */}
-            <div className="border-t bg-gray-50 p-3">
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                    <span>Active file: <strong>{activeFile}</strong></span>
-                    <span>{files.length} file{files.length !== 1 ? 's' : ''}</span>
+            {showFooter && (
+                <div className="border-t bg-gray-50 p-3">
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                        <span>Active file: <strong>{activeFile}</strong></span>
+                        <span>{files.length} file{files.length !== 1 ? 's' : ''}</span>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 

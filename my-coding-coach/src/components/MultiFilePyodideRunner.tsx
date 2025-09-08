@@ -14,6 +14,7 @@ interface MultiFilePyodideRunnerProps {
     activeFile: string;
     onOutput?: (output: string) => void;
     onError?: (error: string) => void;
+    className?: string;
 }
 
 declare global {
@@ -112,7 +113,8 @@ export default function MultiFilePyodideRunner({
     files,
     activeFile,
     onOutput,
-    onError
+    onError,
+    className
 }: MultiFilePyodideRunnerProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [output, setOutput] = useState<string>('');
@@ -263,7 +265,7 @@ export default function MultiFilePyodideRunner({
     };
 
     return (
-        <div className="border rounded-lg bg-gray-50">
+        <div className={`border rounded-lg bg-gray-50 flex flex-col h-full min-h-0 ${className || ''}`}>
             <div className="flex items-center justify-between p-4 border-b bg-gray-100">
                 <div className="flex items-center space-x-2">
                     <Terminal className="h-5 w-5 text-gray-600" />
@@ -321,10 +323,10 @@ export default function MultiFilePyodideRunner({
                 </div>
             </div>
 
-            <div className="p-4">
+            <div className="p-4 flex-1 min-h-0">
                 <div
                     ref={outputRef}
-                    className="bg-black text-green-400 font-mono text-sm p-4 rounded h-64 overflow-auto whitespace-pre-wrap"
+                    className="bg-black text-green-400 font-mono text-sm p-4 rounded h-full overflow-auto whitespace-pre-wrap"
                 >
                     {output || 'Output will appear here...'}
                 </div>

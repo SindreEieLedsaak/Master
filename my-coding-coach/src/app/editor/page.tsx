@@ -5,11 +5,10 @@ import { useUser } from '@/contexts/user/UserContext';
 import { apiClient, CodeAnalysis } from '@/lib/api';
 import MultiFileEditor, { MultiFileEditorRef } from '@/components/MultiFileEditor';
 import MultiFilePyodideRunner from '@/components/MultiFilePyodideRunner';
-import FeedbackPanel from '@/components/FeedbackPanel';
 import AssistantChat from '@/components/AssistantChat';
-import { Bot, MessageSquare, BookOpen, X, CheckCircle } from 'lucide-react';
+import FileExplorer from '@/components/FileExplorer';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import toast from 'react-hot-toast';
-import { FormattedAIText } from '@/utils/textFormatter';
 import { API_BASE_URL } from '@/lib/http';
 
 interface Message {
@@ -33,48 +32,19 @@ interface TaskData {
     starterCode?: string;
 }
 
-export default function EditorPage() {
+const EditorPage = () => {
     const { user } = useUser();
     // EditorPage – change initial files state
     const [lastRunOutput, setLastRunOutput] = useState<string>('');
     const [lastRunError, setLastRunError] = useState<string>('');
-    const [files, setFiles] = useState<File[]>(() => {
-        if (typeof window !== 'undefined') {
-            const taskmode = sessionStorage.getItem('taskmode');
-            const storedTask = sessionStorage.getItem('currentTask');
 
-            if (taskmode === 'true' && storedTask) {
-                try {
-                    const taskData: TaskData = JSON.parse(storedTask);
-                    if (taskData.starterCode) {
-                        return [{
-                            name: 'main.py',
-                            content: taskData.starterCode,
-                            language: 'python'
-                        }];
-                    }
-                } catch { }
-            }
-
-            const storedFiles = sessionStorage.getItem('files');
-            if (storedFiles) {
-                try { return JSON.parse(storedFiles); } catch { }
-            }
-        }
-        // fallback
-        return [
-            { name: 'main.py', content: 'from module import greet\n\nprint(greet("World"))', language: 'python' },
-            { name: 'module.py', content: '# A module you can import\n\ndef greet(name):\n  return f"Hello, {name}!"', language: 'python' }
-        ];
-    });
+    const [files, setFiles] = useState<File[]>([
+        { name: 'main.py', content: 'from module import greet\n\nprint(greet("World"))', language: 'python' },
+        { name: 'module.py', content: '# A module you can import\n\ndef greet(name):\n  return f"Hello, {name}!"', language: 'python' }
+    ]);
 
 
-    const [activeFile, setActiveFile] = useState<string>(() => {
-        if (typeof window !== 'undefined') {
-            return sessionStorage.getItem('activeFile') || 'main.py';
-        }
-        return 'main.py';
-    });
+    const [activeFile, setActiveFile] = useState<string>('main.py');
     const [feedback, setFeedback] = useState<CodeAnalysis | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [currentTask, setCurrentTask] = useState<TaskData | null>(null);
@@ -86,14 +56,14 @@ export default function EditorPage() {
                 try {
                     return JSON.parse(storedMessages);
                 } catch (e) {
-                    console.error("Failed to parse messages from session storage", e);
+                    console.error('Failed to parse messages from session storage', e);
                 }
             }
         }
         return [
             {
                 id: '1',
-                text: 'Hello! I\'m your AI coding assistant. I can help you understand your code, explain concepts, and provide guidance. What would you like to know?',
+                text: "Hello! I'm your AI coding assistant. I can help you understand your code, explain concepts, and provide guidance. What would you like to know?",
                 role: 'assistant',
                 timestamp: new Date(),
             },
@@ -106,37 +76,6 @@ export default function EditorPage() {
     const hasLoadedServerStateRef = useRef(false);
     const saveTimerRef = useRef<any>(null);
 
-
-    useEffect(() => {
-        const taskmode = sessionStorage.getItem('taskmode');
-        const storedTask = sessionStorage.getItem('currentTask');
-
-        if (taskmode === 'true' && storedTask) {
-            try {
-                const taskData: TaskData = JSON.parse(storedTask);
-                const loadedTaskId = sessionStorage.getItem('loadedTaskId');
-
-                if (taskData.id !== loadedTaskId) {
-                    // This is a new task, load starter code
-                    if (taskData.starterCode) {
-                        const newFiles = [{
-                            name: 'main.py',
-                            content: taskData.starterCode,
-                            language: 'python'
-                        }];
-                        setFiles(newFiles);
-                        setActiveFile('main.py');
-                    }
-                    sessionStorage.setItem('loadedTaskId', taskData.id);
-                }
-
-                loadTaskFromData(taskData);
-            } catch (error) {
-                console.error('Error parsing stored task:', error);
-                toast.error('Failed to load task data');
-            }
-        }
-    }, []);
 
     // Load saved editor state (files/active file/task) once when user arrives
     useEffect(() => {
@@ -168,11 +107,6 @@ export default function EditorPage() {
     }, [user?.id]);
 
     useEffect(() => {
-        sessionStorage.setItem('files', JSON.stringify(files));
-        sessionStorage.setItem('activeFile', activeFile);
-    }, [files, activeFile])
-
-    useEffect(() => {
         sessionStorage.setItem('messages', JSON.stringify(messages));
     }, [messages])
 
@@ -195,27 +129,6 @@ export default function EditorPage() {
         };
     }, [files, activeFile, currentTask, user?.id]);
 
-    const loadTaskFromData = (taskData: TaskData) => {
-        setCurrentTask(taskData);
-        setShowTaskPanel(true);
-        console.log("taskData", taskData);
-
-        // Add task context to assistant with a more comprehensive introduction
-        const taskContextMessage: Message = {
-            id: `task-${Date.now()}`,
-            text: `🎯 **New Learning Task Started!**\n\n**Task:** ${taskData.title}\n\n**Description:** ${taskData.description}\n\nI'm here to help you complete this task step by step. Feel free to ask me questions about the requirements, coding concepts, or if you get stuck on any part!`,
-            role: 'assistant',
-            timestamp: new Date(),
-        };
-
-        // Check if the task context message is already present
-        if (!messages.some(m => m.id.startsWith('task-'))) {
-            setMessages(prev => [taskContextMessage, ...prev.slice(1)]); // Replace the generic greeting
-        }
-
-        toast.success(`Task loaded: ${taskData.title}`);
-    };
-
     const handleCompleteTask = () => {
         if (currentTask) {
             toast.success(`Congratulations! You've completed: ${currentTask.title}`);
@@ -229,11 +142,6 @@ export default function EditorPage() {
             };
 
             setMessages(prev => [...prev, celebrationMessage]);
-
-            // Clear the task from storage
-            sessionStorage.removeItem('currentTask');
-            sessionStorage.removeItem('loadedTaskId');
-            sessionStorage.removeItem('taskmode');
         }
     };
 
@@ -241,9 +149,6 @@ export default function EditorPage() {
         toast('Exited task mode.');
         setCurrentTask(null);
         setShowTaskPanel(false);
-        sessionStorage.removeItem('taskmode');
-        sessionStorage.removeItem('currentTask');
-        sessionStorage.removeItem('loadedTaskId');
 
         const exitMessage: Message = {
             id: `exit-task-${Date.now()}`,
@@ -272,7 +177,7 @@ export default function EditorPage() {
         setMessages([
             {
                 id: '1',
-                text: 'Hello! I\'m your AI coding assistant. I can help you understand your code, explain concepts, and provide guidance. What would you like to know?',
+                text: "Hello! I'm your AI coding assistant. I can help you understand your code, explain concepts, and provide guidance. What would you like to know?",
                 role: 'assistant',
                 timestamp: new Date(),
             },
@@ -288,6 +193,8 @@ export default function EditorPage() {
         }]);
         apiClient.addSystemMessage(`Runtime error:\n\n${error}`);
     };
+
+
     const handlePyodideOutput = (output: string) => {
         setLastRunOutput(output);
         setMessages(prev => [...prev, {
@@ -297,7 +204,7 @@ export default function EditorPage() {
             timestamp: new Date(),
         }]);
         const message = `Runtime output:\n\n${output}`;
-        console.log("message", message)
+        console.log('message', message)
         apiClient.addSystemMessage(message);
     };
 
@@ -308,6 +215,7 @@ export default function EditorPage() {
             role: 'user',
             timestamp: new Date(),
         };
+
 
         setMessages(prev => [...prev, userMessage]);
         setIsAssistantLoading(true);
@@ -323,6 +231,8 @@ export default function EditorPage() {
 **Task Description:** ${currentTask.description}
 
 **Student Question:** ${message}
+
+**Active File:** ${activeFile}
 
 Please provide helpful guidance that's specifically relevant to this learning task. If the student's code or question relates to the task requirements, help them understand how to complete it step by step.`;
         }
@@ -364,120 +274,78 @@ Please provide helpful guidance that's specifically relevant to this learning ta
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="mb-8">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                                {currentTask ? `Learning Task: ${currentTask.title}` : 'Multi-File Code Editor'}
-                            </h1>
-                            <p className="text-gray-600">
-                                {currentTask
-                                    ? 'Complete your learning task with AI assistance'
-                                    : 'Write Python code across multiple files and run them with references to each other'
-                                }
-                            </p>
-                        </div>
-                        {currentTask && (
-                            <div className="flex items-center space-x-2">
-                                <button
-                                    onClick={handleCompleteTask}
-                                    className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                                >
-                                    <CheckCircle className="h-4 w-4 mr-2" />
-                                    Mark Complete
-                                </button>
-                                <button
-                                    onClick={handleExitTaskMode}
-                                    className="flex items-center px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-                                >
-                                    <X className="h-4 w-4 mr-2" />
-                                    Exit Task
-                                </button>
+        <div className="h-[calc(100vh-4rem)] bg-gray-50 overflow-hidden">
+            <div className="flex flex-col h-full">
+                {/* Main IDE Layout */}
+                <div className="flex-1 min-h-0 overflow-hidden">
+                    <PanelGroup direction="horizontal">
+                        {/* Left: File Explorer */}
+                        <Panel defaultSize={15} minSize={12} className="min-w-[180px]">
+                            <div className="h-full p-2">
+                                <FileExplorer
+                                    files={files}
+                                    activeFile={activeFile}
+                                    onFilesChange={setFiles}
+                                    onActiveFileChange={setActiveFile}
+                                />
                             </div>
-                        )}
-                    </div>
-                </div>
+                        </Panel>
+                        <PanelResizeHandle className="w-1 bg-gray-200 hover:bg-gray-300 transition-colors cursor-col-resize" />
 
-                {/* Task Panel */}
-                {showTaskPanel && currentTask && (
-                    <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-                        <div className="flex items-start justify-between">
-                            <div className="flex items-center mb-4">
-                                <BookOpen className="h-6 w-6 text-blue-600 mr-3" />
-                                <h2 className="text-xl font-semibold text-blue-900">Current Learning Task</h2>
+                        {/* Center: Editor over Terminal */}
+                        <Panel defaultSize={55} minSize={30}>
+                            <PanelGroup direction="vertical">
+                                {/* Editor */}
+                                <Panel defaultSize={60} minSize={25}>
+                                    <div className="h-full p-2">
+                                        <MultiFileEditor
+                                            ref={editorRef}
+                                            files={files}
+                                            activeFile={activeFile}
+                                            onFilesChange={setFiles}
+                                            onActiveFileChange={setActiveFile}
+                                            onRunCode={handleRunCode}
+                                            showHeader={false}
+                                            showFooter={false}
+                                            className="h-full"
+                                        />
+                                    </div>
+                                </Panel>
+                                <PanelResizeHandle className="h-1 bg-gray-200 hover:bg-gray-300 transition-colors cursor-row-resize" />
+
+                                {/* Bottom: Terminal only */}
+                                <Panel defaultSize={40} minSize={20}>
+                                    <div className={`h-full p-2 ${showPyodide ? '' : 'hidden'}`}>
+                                        <MultiFilePyodideRunner
+                                            files={files}
+                                            activeFile={activeFile}
+                                            onOutput={handlePyodideOutput}
+                                            onError={handlePyodideError}
+                                            className="h-full"
+                                        />
+                                    </div>
+                                </Panel>
+                            </PanelGroup>
+                        </Panel>
+
+                        {/* Right: Chat panel */}
+                        <PanelResizeHandle className="w-1 bg-gray-200 hover:bg-gray-300 transition-colors cursor-col-resize" />
+                        <Panel defaultSize={17} minSize={15}>
+                            <div className="h-full p-2">
+                                <AssistantChat
+                                    onSendMessage={handleAssistantMessage}
+                                    messages={messages}
+                                    isLoading={isAssistantLoading}
+                                    onResetAssistant={handleResetAssistant}
+                                    className="h-full"
+                                />
                             </div>
-                            <button
-                                onClick={() => setShowTaskPanel(false)}
-                                className="text-blue-400 hover:text-blue-600 transition-colors"
-                            >
-                                <X className="h-5 w-5" />
-                            </button>
-                        </div>
-                        <div className="bg-white rounded-lg p-4 max-h-96 overflow-y-auto shadow-sm">
-                            <FormattedAIText text={currentTask.fullContent} />
-                        </div>
-                    </div>
-                )}
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Left Column - Multi-File Editor and Runner */}
-                    <div className="space-y-6">
-                        <MultiFileEditor
-                            ref={editorRef}
-                            files={files}
-                            activeFile={activeFile}
-                            onFilesChange={setFiles}
-                            onActiveFileChange={setActiveFile}
-                            onRunCode={handleRunCode}
-                        />
-
-                        <div className="flex space-x-4">
-
-                            {currentTask && !showTaskPanel && (
-                                <button
-                                    onClick={() => setShowTaskPanel(true)}
-                                    className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-                                >
-                                    <BookOpen className="h-4 w-4 mr-2" />
-                                    Show Task
-                                </button>
-                            )}
-                        </div>
-
-                        <div className={`${showPyodide ? 'block' : 'hidden'}`}>
-                            <MultiFilePyodideRunner
-                                files={files}
-                                activeFile={activeFile}
-                                onOutput={handlePyodideOutput}
-                                onError={handlePyodideError}
-                            />
-                        </div>
-
-                        {feedback && <FeedbackPanel feedback={feedback} isLoading={isAnalyzing} />}
-                    </div>
-
-                    {/* Right Column - AI Assistant */}
-                    <div>
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                            <MessageSquare className="h-5 w-5 mr-2" />
-                            AI Learning Assistant
-                            {currentTask && (
-                                <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                                    Task Mode
-                                </span>
-                            )}
-                        </h2>
-                        <AssistantChat
-                            onSendMessage={handleAssistantMessage}
-                            messages={messages}
-                            isLoading={isAssistantLoading}
-                            onResetAssistant={handleResetAssistant}
-                        />
-                    </div>
+                        </Panel>
+                    </PanelGroup>
                 </div>
             </div>
         </div>
     );
-} 
+}
+
+export default EditorPage;

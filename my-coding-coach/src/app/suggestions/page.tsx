@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { FormattedAIText } from '@/utils/textFormatter';
 import { useRouter } from 'next/navigation';
 import { API_BASE_URL } from '@/lib/http';
+import TopRightLoader from '@/components/TopRightLoader';
 
 interface TaskData {
     id: string;
@@ -100,16 +101,76 @@ export default function SuggestionsPage() {
         }
     };
 
-    const handleStartTask = (taskData: TaskData, index: number) => {
-        // Store task data in sessionStorage for the editor
-        sessionStorage.setItem('currentTask', JSON.stringify(taskData));
+    const handleStartTask = async (taskData: TaskData, index: number) => {
+        if (!user) return;
+        try {
+            // Load existing editor state to merge files instead of replacing
+            let existingFiles: { name: string; content: string; language: string }[] = [];
+            try {
+                const state: any = await apiClient.loadEditorState(user.id);
+                existingFiles = Array.isArray(state?.files) ? state.files : [];
+            } catch (_) {
+                existingFiles = [];
+            }
 
-        // Navigate to editor with task indicator
-        router.push('/editor');
-        sessionStorage.setItem('taskmode', 'true');
+            const fileNames = new Set(existingFiles.map(f => f.name));
 
+            // Choose task file name: TASK.md, or TASK2.md, TASK3.md, ... if exists
+            const nextTaskFileName = (() => {
+                const base = 'TASK.md';
+                if (!fileNames.has(base)) return base;
+                let i = 2;
+                while (fileNames.has(`TASK${i}.md`)) i++;
+                return `TASK${i}.md`;
+            })();
 
+            const taskMarkdown = taskData.fullContent?.trim()
+                ? taskData.fullContent
+                : `# ${taskData.title}\n\n${taskData.description}`;
 
+            const filesToAdd: { name: string; content: string; language: string }[] = [
+                { name: nextTaskFileName, content: taskMarkdown, language: 'markdown' }
+            ];
+
+            // If starter code exists, add it using a unique filename (main.py, main_2.py, ...)
+            if (taskData.starterCode) {
+                const baseName = 'main.py';
+                if (!fileNames.has(baseName)) {
+                    filesToAdd.push({ name: baseName, content: taskData.starterCode, language: 'python' });
+                } else {
+                    // Generate main_2.py, main_3.py, ...
+                    let idx = 2;
+                    let candidate = `main_${idx}.py`;
+                    while (fileNames.has(candidate)) {
+                        idx += 1;
+                        candidate = `main_${idx}.py`;
+                    }
+                    filesToAdd.push({ name: candidate, content: taskData.starterCode, language: 'python' });
+                }
+            }
+
+            const mergedFiles = [...existingFiles, ...filesToAdd];
+
+            const active = taskData.starterCode
+                ? filesToAdd.find(f => f.language === 'python')?.name || nextTaskFileName
+                : nextTaskFileName;
+
+            await apiClient.saveEditorState(user.id, {
+                files: mergedFiles,
+                active_file: active,
+                task: {
+                    id: taskData.id,
+                    title: taskData.title,
+                    description: taskData.description,
+                }
+            });
+
+            toast.success('Task added to editor');
+            router.push('/editor');
+        } catch (e) {
+            console.error('Failed to start task:', e);
+            toast.error('Failed to load task into editor');
+        }
     };
 
     const toggleTaskExpansion = (index: number) => {
@@ -157,6 +218,7 @@ export default function SuggestionsPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            <TopRightLoader visible={isGenerating || isLoading} text={isGenerating ? 'Generating suggestions...' : isLoading ? 'Loading suggestions...' : ''} />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="mb-8">
                     <div className="flex items-center justify-between">
@@ -172,7 +234,7 @@ export default function SuggestionsPage() {
                             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
                         >
                             <RefreshCw className={`h-4 w-4 mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
-                            Generate New Tasks
+                            {isGenerating ? 'Generating...' : 'Generate New Tasks'}
                         </button>
                     </div>
                 </div>

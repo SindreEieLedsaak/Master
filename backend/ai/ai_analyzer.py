@@ -41,18 +41,28 @@ class AIAnalyzer:
         return cls._instance
 
 
-    def get_ai_response(self, prompt: str | None = None) -> str:
+
+
+
+    def get_ai_response(self, prompt: str | None = None, add_promt_to_history: bool = True, add_response_to_history: bool = True) -> str:
         """
         Get a response from the AI assistant using the provided prompt.
         """
         try:
-            self.conversation_history.append({"role": "user", "content": prompt})
-            response = self.client.chat.completions.create(
+            if add_promt_to_history:
+                self.conversation_history.append({"role": "user", "content": prompt})
+                response = self.client.chat.completions.create(
                 model='gpt-4.1-mini',
                 messages=self.conversation_history
-            )
-            self.conversation_history.append({"role": "assistant", "content": response.choices[0].message.content.strip() or ""})
-            print(self.conversation_history)
+                 )
+            else:
+                response = self.client.chat.completions.create(
+                    model='gpt-4.1-mini',
+                    messages=self.conversation_history + [{"role": "user", "content": prompt}]
+                )
+            print(response.usage)
+            if add_response_to_history:
+                self.conversation_history.append({"role": "assistant", "content": response.choices[0].message.content.strip() or ""})
             return response.choices[0].message.content.strip() or ""
         except Exception as e:
             print(f"Error getting ai response: {e}")

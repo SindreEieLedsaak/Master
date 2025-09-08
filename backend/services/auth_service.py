@@ -6,8 +6,6 @@ from dotenv import load_dotenv
 from cryptography.fernet import Fernet
 import base64
 
-load_dotenv()
-
 # --- OAuth Configuration ---
 GITLAB_URL = os.getenv("GITLAB_URL")
 GITLAB_CLIENT_ID = os.getenv("GITLAB_CLIENT_ID")
