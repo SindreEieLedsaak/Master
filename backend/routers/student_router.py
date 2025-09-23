@@ -7,7 +7,7 @@ from backend.models.suggestion import SuggestionInDB
 from typing import List, Optional, Dict
 from backend.models.editor_state import SaveEditorStateRequest, EditorStateResponse
 from backend.mongodb.MongoDB import get_db_connection
-from backend.services.auth_service import AuthService
+from backend.dependencies import get_current_user
 
 router = APIRouter()
 
@@ -16,17 +16,6 @@ class StudentCreateRequest(BaseModel):
 
 class StudentSyncRequest(BaseModel):
     gitlab_username: str
-
-# --- Auth dependency ---
-async def get_current_user(request: Request, auth_service: AuthService = Depends(AuthService)) -> Dict[str, str]:
-    token = request.cookies.get("app_token")
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    try:
-        payload = auth_service.decode_access_token(token)
-        return {"id": payload.get("sub"), "gitlab_username": payload.get("name")}
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
 
 @router.get("/students/{student_id}/suggestions", response_model=List[SuggestionInDB], tags=["Students", "Suggestions"])
 def get_student_suggestions(

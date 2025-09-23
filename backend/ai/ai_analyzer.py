@@ -29,7 +29,7 @@ class AIAnalyzer:
                 api_version="2024-10-21",
             )
             self.conversation_history = []
-            AIAnalyzer._initialized = True
+            self._initialized = True
 
     @classmethod
     def get_instance(cls):

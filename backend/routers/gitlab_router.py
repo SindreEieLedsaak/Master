@@ -1,19 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from backend.gitlab.gitlab_service import GitlabService
-from backend.services.auth_service import AuthService
+from backend.dependencies import get_current_user
 
 router = APIRouter()
-
-# --- Auth dependency ---
-async def get_current_user(request: Request, auth_service: AuthService = Depends(AuthService)):
-    token = request.cookies.get("app_token")
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    try:
-        payload = auth_service.decode_access_token(token)
-        return {"id": payload.get("sub"), "gitlab_username": payload.get("name")}
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
 
 @router.get("/student/{student_id}/projects", tags=["GitLab"])
 async def get_student_projects(student_id: str, gitlab_service: GitlabService = Depends(GitlabService), current_user = Depends(get_current_user)):
