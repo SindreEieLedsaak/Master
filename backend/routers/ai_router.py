@@ -1,22 +1,11 @@
-from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi import APIRouter, HTTPException, Depends
 from backend.analyzer.project_analyzer import ProjectAnalyzer
 from backend.models.promt import AssistantRequest, AssistantResponse, SystemMessageRequest
 from backend.ai.assistant import Assistant
 from backend.analyzer.ai_project_analyzer import AIProjectAnalyzer
-from backend.services.auth_service import AuthService
+from backend.dependencies import get_current_user
 
 router = APIRouter()
-
-# --- Auth dependency ---
-async def get_current_user(request: Request, auth_service: AuthService = Depends(AuthService)):
-    token = request.cookies.get("app_token")
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    try:
-        payload = auth_service.decode_access_token(token)
-        return {"id": payload.get("sub"), "gitlab_username": payload.get("name")}
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
 
 @router.post("/ai-analyze-student-projects/{student_id}")
 async def analyze_student_projects(student_id: str, current_user = Depends(get_current_user)):

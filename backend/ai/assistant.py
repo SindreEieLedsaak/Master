@@ -31,7 +31,7 @@ class Assistant:
             )
             self.conversation_history = []
             self.add_system_message(system_prompt)
-            Assistant._initialized = True
+            self._initialized = True
 
     @classmethod
     def get_instance(cls):
@@ -64,12 +64,15 @@ class Assistant:
                 code = f"Here is the code: {code}\n\n"
             
 
+            
+            
             self.conversation_history.append({"role": "user", "content": prompt})
             response = self.client.chat.completions.create(
                 model='gpt-4.1-mini',
                 messages=self.conversation_history + [{"role": "user", "content": code}]
             )
             self.conversation_history.append({"role": "assistant", "content": response.choices[0].message.content.strip() or ""})
+            print(self.conversation_history)
             return response.choices[0].message.content.strip() or ""
         except Exception as e:
             print(f"Error getting assistant response: {e}")
