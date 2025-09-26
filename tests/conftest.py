@@ -6,11 +6,15 @@ from fastapi.testclient import TestClient
 
 # Optional: only import mongomock if available
 try:
-    import mongomock  # type: ignore
-except ImportError:  # pragma: no cover
+    import mongomock
+except ImportError:  
     mongomock = None
 
-# Load FastAPI app from app.py (done once for the test session)
+
+os.environ["SECRET_KEY"] = "test-secret-key"
+os.environ["MODE"] = "dev"
+
+
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 APP_FILE = os.path.join(PROJECT_ROOT, 'app.py')
 if PROJECT_ROOT not in sys.path:

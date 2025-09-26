@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import os
 
 # Helper to mint a test JWT compatible with backend
-SECRET_KEY = os.getenv("SECRET_KEY", "a_very_secret_key_that_should_be_in_env")
+SECRET_KEY = "test-secret-key"  # Must match the key set in conftest.py
 ALGORITHM = "HS256"
 
 def make_token(sub: str, name: str = "user") -> str:
