@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from cryptography.fernet import Fernet
 import base64
+from datetime import datetime
 
 # --- OAuth Configuration ---
 GITLAB_URL = os.getenv("GITLAB_URL")
@@ -42,7 +43,7 @@ class AuthService:
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(minutes=15)
+            expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
         return encoded_jwt
@@ -51,8 +52,15 @@ class AuthService:
         """Decode and validate a JWT access token, returning the claims dict."""
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            # Check if token is expired
+            exp = payload.get('exp')
+            if exp:
+                exp_datetime = datetime.fromtimestamp(exp)
+                if exp_datetime < datetime.utcnow():
+                    raise JWTError("Token has expired")
             return payload
         except JWTError as e:
+            print(f"🔴 Token decode failed: {e}")
             raise e
     
     def encrypt_token(self, token: str) -> str:

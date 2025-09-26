@@ -33,6 +33,7 @@ export const apiClient = {
     // Authentication
     login: Auth.login,
     logout: Auth.logout,
+    refreshToken: Auth.refreshToken,
 
     // Students
     syncGitlabProjects: Students.syncGitlabProjects,

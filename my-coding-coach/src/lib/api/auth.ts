@@ -10,4 +10,17 @@ export async function logout(): Promise<void> {
     } catch { }
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
+}
+
+export async function refreshToken(): Promise<boolean> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Token refresh failed:', error);
+        return false;
+    }
 } 

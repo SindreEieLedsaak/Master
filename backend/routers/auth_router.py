@@ -115,6 +115,57 @@ async def me(request: Request, auth_service: AuthService = Depends()):
         raise HTTPException(status_code=401, detail="Invalid token")
     return {"id": payload.get("sub"), "gitlab_username": payload.get("name")}
 
+@router.post('/refresh')
+async def refresh_token(
+    request: Request,
+    response: Response,
+    auth_service: AuthService = Depends(AuthService)
+):
+    """Refresh the access token using the current valid token"""
+    current_token = request.cookies.get("app_token")
+    if not current_token:
+        raise HTTPException(status_code=401, detail="No token found")
+    
+    try:
+        # Decode current token to get user info
+        payload = auth_service.decode_access_token(current_token)
+        user_id = payload.get("sub")
+        username = payload.get("name")
+        
+        if not user_id or not username:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        
+        # Create new token with extended expiration
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        new_access_token = auth_service.create_access_token(
+            data={"sub": user_id, "name": username},
+            expires_delta=access_token_expires
+        )
+        
+        # Update cookie with new token
+        if MODE == "dev":
+            cookie_domain = "localhost"
+            use_secure = False
+        else:
+            parsed_frontend = urlparse(frontend_url)
+            cookie_domain = parsed_frontend.hostname or 'localhost'
+            use_secure = parsed_frontend.scheme == 'https'
+        
+        response.set_cookie(
+            key="app_token",
+            value=new_access_token,
+            max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            httponly=True,
+            secure=use_secure,
+            samesite="lax",
+            domain=cookie_domain
+        )
+        
+        return {"message": "Token refreshed successfully", "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60}
+        
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Failed to refresh token")
+
 @router.post('/logout')
 async def logout(response: Response):
     """Clear authentication cookies"""
