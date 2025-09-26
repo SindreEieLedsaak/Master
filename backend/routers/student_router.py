@@ -8,7 +8,7 @@ from typing import List, Optional, Dict
 from backend.models.editor_state import SaveEditorStateRequest, EditorStateResponse
 from backend.mongodb.MongoDB import get_db_connection
 from backend.dependencies import get_current_user
-
+import os
 router = APIRouter()
 
 class StudentCreateRequest(BaseModel):
@@ -73,8 +73,10 @@ def sync_student(
     try:
         # Get GitLab token from secure cookie
         gitlab_token_cookie = request.cookies.get("gitlab_token")
-        print(f"🍪 Cookies received: {list(request.cookies.keys())}")
-        print(f"🔑 GitLab token cookie: {'Found' if gitlab_token_cookie else 'Not found'}")
+
+        if os.getenv("MODE", "dev") == "dev":
+            print(f"🍪 Cookies received: {list(request.cookies.keys())}")
+            print(f"🔑 GitLab token cookie: {'Found' if gitlab_token_cookie else 'Not found'}")
         
         if not gitlab_token_cookie:
             raise HTTPException(

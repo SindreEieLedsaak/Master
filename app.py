@@ -28,7 +28,13 @@ load_dotenv()
 app = FastAPI()
 
 # Add Session Middleware for Authlib
-app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "a_default_secret_key"))
+MODE = os.getenv("MODE", "dev")
+SESSION_SECRET = os.getenv("SECRET_KEY")
+if MODE != "dev" and not SESSION_SECRET:
+    raise RuntimeError("SECRET_KEY must be set for sessions in production")
+if not SESSION_SECRET:
+    SESSION_SECRET = "dev-session-secret"
+app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
 
 # Add CORS Middleware
 mode = os.getenv("MODE", "dev")
@@ -41,8 +47,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[frontend_url],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 # Include all routers with a single /api prefix
