@@ -22,10 +22,19 @@ async def get_current_user(request: Request, auth_service: AuthService = Depends
     """
     token = request.cookies.get("app_token")
     if not token:
+        print("🔴 No app_token cookie found")
         raise HTTPException(status_code=401, detail="Not authenticated")
     
     try:
         payload = auth_service.decode_access_token(token)
-        return {"id": payload.get("sub"), "gitlab_username": payload.get("name")}
-    except Exception:
+        user_id = payload.get("sub")
+        username = payload.get("name")
+        
+        if not user_id or not username:
+            print("🔴 Invalid token payload - missing user info")
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+            
+        return {"id": user_id, "gitlab_username": username}
+    except Exception as e:
+        print(f"🔴 Token validation failed: {e}")
         raise HTTPException(status_code=401, detail="Invalid token")

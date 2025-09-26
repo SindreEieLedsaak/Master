@@ -226,15 +226,13 @@ const EditorPage = () => {
         // Enhanced context with task information
         let contextualMessage = message;
         if (currentTask) {
-            contextualMessage = `**Current Learning Task:** ${currentTask.title}
-            
-**Task Description:** ${currentTask.description}
+            contextualMessage = `
 
 **Student Question:** ${message}
 
-**Active File:** ${activeFile}
 
-Please provide helpful guidance that's specifically relevant to this learning task. If the student's code or question relates to the task requirements, help them understand how to complete it step by step.`;
+**Active File (Please prioritize this file when answering):** ${activeFile}
+`;
         }
 
         try {
