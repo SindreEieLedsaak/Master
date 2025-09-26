@@ -123,6 +123,8 @@ def test_students_sync_ok(client: TestClient, monkeypatch: pytest.MonkeyPatch):
 def test_suggestion_delete_success(client: TestClient, monkeypatch: pytest.MonkeyPatch):
     from backend.routers.suggestion_router import SuggestionService
 
+    # Mock get_one to return a suggestion owned by user 'u1'
+    monkeypatch.setattr(SuggestionService, 'get_one', lambda self, sid: {"student_id": "u1", "_id": "sg1"}, raising=True)
     monkeypatch.setattr(SuggestionService, 'delete', lambda self, sid: True, raising=True)
     token = make_token(sub='u1')
     resp = client.delete('/api/suggestions/sg1', cookies={'app_token': token})

@@ -16,7 +16,12 @@ def delete_suggestion(
     """
     Deletes a suggestion by its ID.
     """
-    suggestion = suggestion_service.get_one(suggestion_id)
+    try:
+        suggestion = suggestion_service.get_one(suggestion_id)
+    except Exception:
+        # Invalid ObjectId format or other DB errors
+        raise HTTPException(status_code=404, detail="Suggestion not found")
+    
     if not suggestion:
         raise HTTPException(status_code=404, detail="Suggestion not found")
 
