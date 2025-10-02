@@ -1,9 +1,11 @@
+from math import e
 from dotenv import load_dotenv
 import os
 from typing import Dict, List, Optional
 import openai
 
 import uuid
+from backend.models.promt import system_prompt
 
 
 class SessionAssistant:
@@ -44,7 +46,6 @@ class SessionAssistant:
         if system_message:
             self.add_system_message(session_id, system_message)
 
-
         return session_id
 
     def get_or_create_session(self, session_id: str, system_message: Optional[str] = None) -> str:
@@ -68,8 +69,8 @@ class SessionAssistant:
         """
         Clear a session's conversation history and optionally set new system message.
         """
-        if session_id in self.sessions:
-            self.sessions[session_id] = []
+        # Clear the session (or create it if it doesn't exist)
+        self.sessions[session_id] = []
             
         if system_message:
             self.add_system_message(session_id, system_message)

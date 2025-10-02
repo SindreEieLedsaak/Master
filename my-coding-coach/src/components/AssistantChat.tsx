@@ -59,7 +59,7 @@ export default function AssistantChat({
                     const timestamp = Date.now();
                     const newSessionId = `${sessionType}_${timestamp}`;
 
-                    // Create session with custom system prompt if provided
+
                     const result = await apiClient.createAssistantSession(newSessionId, systemPrompt);
                     setSessionId(result.session_id);
                 } catch (error) {
@@ -68,7 +68,11 @@ export default function AssistantChat({
             };
             initializeSession();
         }
+
+
     }, [standalone, systemPrompt, sessionType]);
+
+
 
     // Cleanup session when component unmounts
     useEffect(() => {

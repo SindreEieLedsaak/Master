@@ -4,38 +4,38 @@ import { systemPrompt } from '@/utils/promts';
 export const SURVEY_CONFIGS: SurveyConfig[] = [
     {
         id: 'hints',
-        name: 'Survey A: AI Hints',
-        description: 'AI assistant will provide hints and guidance to help you solve problems step by step.',
+        name: 'Undersøkelse A',
+        description: 'AI-assistenten vil gi hint og veiledning for å hjelpe deg løse problemer steg for steg.',
         aiEnabled: true,
         systemPrompt: systemPrompt
     },
     {
         id: 'solutions',
-        name: 'Survey B: AI Solutions',
-        description: 'AI assistant will provide direct solutions and code when you ask for help.',
+        name: 'Undersøkelse B',
+        description: 'AI-assistenten vil gi direkte løsninger og kode når du ber om hjelp.',
         aiEnabled: true,
     },
     {
         id: 'terminal',
-        name: 'Survey C: Terminal Only',
-        description: 'No AI assistance - only standard Python error messages and terminal output.',
+        name: 'Undersøkelse C',
+        description: 'Ingen AI-assistanse - kun standard Python-feilmeldinger og terminalutskrift.',
         aiEnabled: false,
     }
 ];
 
 export const TASKS: TaskData[] = [
     {
-        title: 'Task 1: Variable Shadowing',
-        md: `# Task 1: Fix Variable Shadowing
+        title: 'Oppgave 1: Variabelskygge',
+        md: `# Oppgave 1: Fiks variabelskygge
 
-The code below has a variable that shadows a built-in Python function, causing an error.
+Koden nedenfor har en variabel som skygger en innebygd Python-funksjon, noe som forårsaker en feil.
 
-**Your goal:** Fix the code so it correctly filters words longer than 3 characters.
+**Ditt mål:** Fiks koden slik at den filtrerer ord lengre enn 3 tegn korrekt.
 
-**Expected output:** ['tool', 'python']
+**Forventet utskrift:** ['tool', 'python']
 `,
         main: `
-# The function below is supposed to filter words longer than 3 characters.
+# Funksjonen nedenfor skal filtrere ord lengre enn 3 tegn.
 def get_word_count_and_filter(word_list):
     len = 0
     long_words = []
@@ -45,22 +45,22 @@ def get_word_count_and_filter(word_list):
     return long_words
 
 print(get_word_count_and_filter(["a", "tool", "bee", "python"]))
-# Expected output: ['tool', 'python']`,
+# Forventet utskrift: ['tool', 'python']`,
         verify: (out: string) => out.includes("['tool', 'python']") || out.includes('["tool", "python"]')
     },
     {
-        title: 'Task 2: Index Out of Range',
-        md: `# Task 2: Fix Index Error
+        title: 'Oppgave 2: Indeks utenfor område',
+        md: `# Oppgave 2: Fiks indeksfeil
 
-The function below is supposed to check for adjacent duplicate values but has an indexing error.
+Funksjonen nedenfor skal sjekke for tilstøtende like verdier, men har en indekseringsfeil.
 
-**Your goal:** Fix the range in the loop to prevent IndexError.
+**Ditt mål:** Fiks området i løkken for å unngå IndexError.
 
-**Expected output:** 2 (for the test case [1,2,2,3])
+**Forventet utskrift:** 1 (for testtilfelle [1,2,2,3])
 `,
         main: `
 
-# The function below is supposed to check output the number of adjacent duplicate values.
+# Funksjonen nedenfor skal sjekke og skrive ut antall tilstøtende like verdier.
 def has_adjacent_duplicate(items):
     adjacent_duplicates = []
     for i in range(len(items)):
@@ -69,19 +69,19 @@ def has_adjacent_duplicate(items):
     return len(adjacent_duplicates)
 
 print(has_adjacent_duplicate([1,2,2,3]))
-# Expected output: 1
+# Forventet utskrift: 1
 `,
         verify: (out: string) => out.trim().endsWith('1')
     },
     {
-        title: 'Task 3: Variable Scope Issue',
-        md: `# Task 3: Fix Variable Scope
+        title: 'Oppgave 3: Variabelområdeproblem',
+        md: `# Oppgave 3: Fiks variabelområde
 
-The function should count vowels in each word separately, but has a scope issue.
+Funksjonen skal telle vokaler i hvert ord separat, men har et områdeproblem.
 
-**Your goal:** Fix the variable initialization to count vowels per word correctly.
+**Ditt mål:** Fiks variabelinitialiseringen for å telle vokaler per ord korrekt.
 
-**Expected output:** [1, 1] (for "cat" and "python")
+**Forventet utskrift:** [1, 1] (for "cat" og "python")
 `,
         main: `def count_vowels_per_word(words):
     vowels = "aeiou"
@@ -95,23 +95,23 @@ The function should count vowels in each word separately, but has a scope issue.
     return counts
 
 print(count_vowels_per_word(["cat", "python"]))
-Expected output: [1, 1]`,
+Forventet utskrift: [1, 1]`,
         verify: (out: string) => out.includes('[1, 1]')
     },
     {
-        title: 'Task 4: Logic Error',
-        md: `# Task 4: Fix Logic Error
+        title: 'Oppgave 4: Logikkfeil',
+        md: `# Oppgave 4: Fiks logikkfeil
 
-The password validation uses the wrong logical operator.
+Passordvalideringen bruker feil logisk operator.
 
-**Your goal:** Fix the condition to require BOTH length >= 8 AND containing a digit.
+**Ditt mål:** Fiks betingelsen for å kreve BÅDE lengde >= 8 OG inneholder et siffer.
 
-**Expected output:** 
+**Forventet utskrift:** 
 False
 True
 `,
         main: `
-# The function below is supposed to check if the password contains a digit and has a length of at least 8.
+# Funksjonen nedenfor skal sjekke om passordet inneholder et siffer og har en lengde på minst 8.
 def has_digit(s):
     return any(char.isdigit() for char in s)
 
@@ -122,8 +122,8 @@ def is_valid_password(password):
         return False
 print(is_valid_password("secret_password"))
 print(is_valid_password("secret_password123"))
-# Expected output: False
-# Expected output: True`,
+# Forventet utskrift: False
+# Forventet utskrift: True`,
         verify: (out: string) => {
             const lines = out.trim().split('\n');
             return lines.length >= 2 && lines[lines.length - 2].trim() === 'False' && lines[lines.length - 1].trim() === 'True';
@@ -134,20 +134,20 @@ print(is_valid_password("secret_password123"))
 export const EXPLORATION_FILES: File[] = [
     {
         name: 'explore.py',
-        content: `# Feel free to explore the editor and try different Python code!
-# Test the AI assistant (if available) or just experiment with coding.
+        content: `# Utforsk editoren fritt og prøv forskjellig Python-kode!
+# Test AI-assistenten (hvis tilgjengelig) eller bare eksperimenter med koding.
 
-def greet(name):
-    return f"Hello, {name}!"
+def hilsen(navn):
+    return f"Hei, {navn}!"
 
 def fibonacci(n):
     if n <= 1:
         return n
     return fibonacci(n-1) + fibonacci(n-2)
 
-# Try running this code and experiment with modifications
-print(greet("Participant"))
-print("Fibonacci sequence:")
+# Prøv å kjøre denne koden og eksperimenter med endringer
+print(hilsen("Deltaker"))
+print("Fibonacci-sekvens:")
 for i in range(10):
     print(f"F({i}) = {fibonacci(i)}")
 `,
@@ -155,22 +155,22 @@ for i in range(10):
     },
     {
         name: 'notes.md',
-        content: `# Exploration Notes
+        content: `# Utforskningsnotater
 
-Feel free to use this space to:
-- Try different coding tasks
-- Test the AI assistant (if available)
-- Experiment with the editor features
-- Take notes about your experience
+Bruk gjerne dette området til å:
+- Prøve forskjellige kodeoppgaver
+- Teste AI-assistenten (hvis tilgjengelig)
+- Eksperimentere med editorfunksjonene
+- Ta notater om din opplevelse
 
-## Features to explore:
-- Code editing and syntax highlighting
-- Running Python code
-- File management (create/edit/delete files)
-- AI assistant interactions (if available)
-- Terminal output
+## Funksjoner å utforske:
+- Koderedigering og syntaksutheving
+- Kjøring av Python-kode
+- Filhåndtering (opprett/rediger/slett filer)
+- AI-assistent-interaksjoner (hvis tilgjengelig)
+- Terminalutskrift
 
-You can navigate through the app after the final questionnaire.
+Du kan navigere gjennom appen etter det endelige spørreskjemaet.
 `,
         language: 'markdown'
     }
@@ -179,25 +179,25 @@ You can navigate through the app after the final questionnaire.
 export const NAVIGATION_FILES: File[] = [
     {
         name: 'welcome.py',
-        content: `# Welcome to the free navigation phase!
-# You can now explore all pages of the application.
+        content: `# Velkommen til fri navigasjonsfase!
+# Du kan nå utforske alle sider i applikasjonen.
 
-# Try visiting different pages:
-# - Dashboard (home)
-# - Editor (current page)
-# - Projects
-# - Suggestions  
-# - Resources
+# Prøv å besøke forskjellige sider:
+# - Dashboard (hjem)
+# - Editor (nåværende side)
+# - Prosjekter
+# - Forslag  
+# - Ressurser
 
-print("Welcome to the free navigation phase!")
-print("Feel free to explore all features of the application.")
-print("Visit different pages using the navigation bar.")
+print("Velkommen til fri navigasjonsfase!")
+print("Utforsk gjerne alle funksjoner i applikasjonen.")
+print("Besøk forskjellige sider ved å bruke navigasjonslinjen.")
 `,
         language: 'python'
     }
 ];
 
 export const TIMER_LIMITS = {
-    TASK: 420, // 7 minutes
-    NAVIGATE: 60, // 10 minutes
+    TASK: 420, // 7 minutter
+    NAVIGATE: 60, // 10 minutter
 } as const;

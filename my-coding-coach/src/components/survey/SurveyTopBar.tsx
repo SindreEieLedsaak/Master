@@ -38,22 +38,22 @@ export default function SurveyTopBar({
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                     <h1 className="text-xl font-semibold text-gray-900">
-                        {enableNavigation ? 'Free Navigation Mode' : selectedSurvey?.name || 'Survey Mode'}
+                        {enableNavigation ? 'Fri navigasjonsmodus' : selectedSurvey?.name || 'Undersøkelsesmodus'}
                     </h1>
                     {phase === 'task' && (
                         <div className="flex items-center space-x-2 text-sm text-gray-600">
-                            <span>Task {currentTask + 1}/4:</span>
+                            <span>Oppgave {currentTask + 1}/4:</span>
                             <span className="font-medium">{TASKS[currentTask]?.title}</span>
                         </div>
                     )}
                     {phase === 'explore' && (
                         <div className="text-sm text-blue-600 font-medium">
-                            Exploration Phase - Test all features
+                            Utforskningsfase - Test alle funksjonene
                         </div>
                     )}
                     {phase === 'navigate' && (
                         <div className="text-sm text-green-600 font-medium">
-                            Free Navigation - Explore all pages
+                            Fri navigasjon - Utforsk alle sider
                         </div>
                     )}
                 </div>
@@ -80,7 +80,7 @@ export default function SurveyTopBar({
                                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                 }`}
                         >
-                            Complete Task
+                            Fullfør oppgave
                         </button>
                     )}
 
@@ -88,7 +88,7 @@ export default function SurveyTopBar({
                         onClick={onQuitSurvey}
                         className="px-4 py-2 text-gray-600 hover:text-gray-800 text-sm font-medium"
                     >
-                        {enableNavigation ? 'End Session' : 'Quit Survey'}
+                        {enableNavigation ? 'Avslutt økt' : 'Avslutt undersøkelse'}
                     </button>
                 </div>
             </div>

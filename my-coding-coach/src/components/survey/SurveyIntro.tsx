@@ -15,30 +15,30 @@ export default function SurveyIntro({ selectedSurvey, onBack, onContinue }: Surv
                 </h1>
                 <div className="space-y-4 text-gray-700">
                     <p>
-                        Thank you for participating in our study. Your feedback is incredibly valuable for our research
-                        into how to build better learning tools for programmers.
+                        Takk for at du deltar i vår studie. Tilbakemeldingene dine er svært verdifulle for vår forskning
+                        om hvordan vi kan bygge bedre læringsverktøy for programmerere.
                     </p>
                     <p>
-                        You will be asked to solve four short debugging tasks. After each task, there will be a few
-                        short questions. Please answer all questions as honestly as possible.
+                        Du vil bli bedt om å løse fire korte feilsøkingsoppgaver. Etter hver oppgave vil det være noen
+                        korte spørsmål. Vennligst svar på alle spørsmål så ærlig som mulig.
                     </p>
                     <p className="font-semibold">
-                        There are no right or wrong answers. We are testing the tool, not you.
+                        Det finnes ingen riktige eller gale svar. Vi tester verktøyet, ikke deg.
                     </p>
                     <p>
-                        The entire session should take approximately 45 minutes.
+                        Hele økten bør ta omtrent 45 minutter.
                     </p>
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-                        <p className="text-blue-800 font-medium">Selected Survey: {selectedSurvey.name}</p>
+                        <p className="text-blue-800 font-medium">Valgt undersøkelse: {selectedSurvey.name}</p>
                         <p className="text-blue-700 text-sm mt-1">{selectedSurvey.description}</p>
                     </div>
                 </div>
                 <div className="flex justify-between mt-8">
                     <button onClick={onBack} className="px-4 py-2 text-gray-600 hover:text-gray-800">
-                        Back to Selection
+                        Tilbake til valg
                     </button>
                     <button onClick={onContinue} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                        Continue
+                        Fortsett
                     </button>
                 </div>
             </div>

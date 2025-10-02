@@ -10,6 +10,7 @@ import FileExplorer from '@/components/FileExplorer';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import toast from 'react-hot-toast';
 import { API_BASE_URL } from '@/lib/http';
+import { systemPrompt } from '@/utils/promts';
 
 interface Message {
     id: string;
@@ -71,13 +72,13 @@ const EditorPage = () => {
     });
     const [isAssistantLoading, setIsAssistantLoading] = useState(false);
     const [showPyodide, setShowPyodide] = useState(true);
+    const [sessionId, setSessionId] = useState<string | null>(null);
 
     const editorRef = useRef<MultiFileEditorRef>(null);
     const hasLoadedServerStateRef = useRef(false);
     const saveTimerRef = useRef<any>(null);
 
 
-    // Load saved editor state (files/active file/task) once when user arrives
     useEffect(() => {
         if (!user?.id || hasLoadedServerStateRef.current) return;
         (async () => {
@@ -110,7 +111,28 @@ const EditorPage = () => {
         sessionStorage.setItem('messages', JSON.stringify(messages));
     }, [messages])
 
-    // Auto-save editor state to backend (debounced)
+    useEffect(() => {
+        const initSession = async () => {
+            try {
+                const timestamp = Date.now();
+                const newSessionId = `default_${timestamp}`;
+                const result = await apiClient.createAssistantSession(newSessionId, systemPrompt);
+                console.log('result', result);
+                setSessionId(result.session_id);
+            } catch (error) {
+                console.error('Failed to initialize assistant session:', error);
+            }
+        };
+        initSession();
+
+        return () => {
+            if (sessionId) {
+                apiClient.deleteAssistantSession(sessionId).catch(console.error);
+            }
+        };
+    }, []);
+
+
     useEffect(() => {
         if (!user?.id) return;
         if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -170,7 +192,9 @@ const EditorPage = () => {
 
     const handleResetAssistant = async () => {
         try {
-            await apiClient.clearAssistant();
+            if (sessionId) {
+                await apiClient.clearAssistant(sessionId);
+            }
         } catch (e) {
             console.error('Failed to clear assistant on server:', e);
         }
@@ -191,7 +215,9 @@ const EditorPage = () => {
             role: 'system',
             timestamp: new Date(),
         }]);
-        apiClient.addSystemMessage(`Runtime error:\n\n${error}`);
+        if (sessionId) {
+            apiClient.addSystemMessage(`Runtime error:\n\n${error}`, sessionId);
+        }
     };
 
 
@@ -205,7 +231,9 @@ const EditorPage = () => {
         }]);
         const message = `Runtime output:\n\n${output}`;
         console.log('message', message)
-        apiClient.addSystemMessage(message);
+        if (sessionId) {
+            apiClient.addSystemMessage(message, sessionId);
+        }
     };
 
     const handleAssistantMessage = async (message: string) => {
@@ -236,7 +264,7 @@ const EditorPage = () => {
         }
 
         try {
-            const response = await apiClient.getAssistantResponse(contextualMessage, code);
+            const response = await apiClient.getAssistantResponse(contextualMessage, code, sessionId || undefined);
             const assistantMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 text: response.response,
@@ -336,6 +364,9 @@ const EditorPage = () => {
                                     isLoading={isAssistantLoading}
                                     onResetAssistant={handleResetAssistant}
                                     className="h-full"
+                                    sessionType='default'
+                                    standalone={false}
+                                    systemPrompt={systemPrompt}
                                 />
                             </div>
                         </Panel>

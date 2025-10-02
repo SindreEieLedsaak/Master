@@ -10,28 +10,28 @@ export default function OverallSurvey({ formData, onFormChange, onSubmit }: Over
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Overall Experience Questionnaire</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">Spørreskjema om samlet opplevelse</h2>
 
                 <div className="space-y-8">
                     {/* SUS Questions */}
                     <div>
                         <h3 className="text-lg font-medium text-gray-900 mb-4">System Usability Scale</h3>
                         <p className="text-sm text-gray-600 mb-4">
-                            For each statement, please indicate your level of agreement (1 = Strongly Disagree, 5 = Strongly Agree).
+                            For hver påstand, vennligst angi ditt nivå av enighet (1 = Sterkt uenig, 5 = Sterkt enig).
                         </p>
 
                         <div className="space-y-4">
                             {([
-                                { q: 'q7', text: 'I think that I would like to use this system frequently.' },
-                                { q: 'q8', text: 'I found the system unnecessarily complex.' },
-                                { q: 'q9', text: 'I thought the system was easy to use.' },
-                                { q: 'q10', text: 'I think that I would need the support of a technical person to be able to use this system.' },
-                                { q: 'q11', text: 'I found the various functions in this system were well integrated.' },
-                                { q: 'q12', text: 'I thought there was too much inconsistency in this system.' },
-                                { q: 'q13', text: 'I would imagine that most people would learn to use this system very quickly.' },
-                                { q: 'q14', text: 'I found the system very cumbersome to use.' },
-                                { q: 'q15', text: 'I felt very confident using the system.' },
-                                { q: 'q16', text: 'I needed to learn a lot of things before I could get going with this system.' }
+                                { q: 'q7', text: 'Jeg tror at jeg vil bruke dette systemet ofte.' },
+                                { q: 'q8', text: 'Jeg synes systemet var unødvendig komplekst.' },
+                                { q: 'q9', text: 'Jeg synes systemet var enkelt å bruke.' },
+                                { q: 'q10', text: 'Jeg tror at jeg vil trenge støtte fra en teknisk person for å kunne bruke dette systemet.' },
+                                { q: 'q11', text: 'Jeg synes de forskjellige funksjonene i systemet var godt integrert.' },
+                                { q: 'q12', text: 'Jeg synes det var for mye inkonsekvens i dette systemet.' },
+                                { q: 'q13', text: 'Jeg vil anta at de fleste vil lære å bruke dette systemet veldig raskt.' },
+                                { q: 'q14', text: 'Jeg synes systemet var veldig tungvint å bruke.' },
+                                { q: 'q15', text: 'Jeg følte meg veldig trygg på å bruke systemet.' },
+                                { q: 'q16', text: 'Jeg måtte lære mye før jeg kunne komme i gang med dette systemet.' }
                             ] as const).map(({ q, text }) => (
                                 <div key={q} className="border border-gray-200 rounded-lg p-4">
                                     <p className="text-sm text-gray-700 mb-3">{text}</p>
@@ -57,12 +57,12 @@ export default function OverallSurvey({ formData, onFormChange, onSubmit }: Over
 
                     {/* Final Questions */}
                     <div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Final Reflections</h3>
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">Avsluttende refleksjoner</h3>
 
                         <div className="space-y-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    How likely would you be to use a tool that provides feedback in this style for your own programming assignments in the future? (1 = Very unlikely, 5 = Very likely)
+                                    Hvor sannsynlig vil du være å bruke et verktøy som gir tilbakemelding i denne stilen for dine egne programmeringsoppgaver i fremtiden? (1 = Veldig usannsynlig, 5 = Veldig sannsynlig)
                                 </label>
                                 <div className="flex space-x-4">
                                     {[1, 2, 3, 4, 5].map(n => (
@@ -81,14 +81,14 @@ export default function OverallSurvey({ formData, onFormChange, onSubmit }: Over
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Imagine you are stuck on a bug in your own project. In the long run, which of these feedback styles do you believe would help you learn the most?
+                                    Tenk deg at du står fast på en feil i ditt eget prosjekt. På lang sikt, hvilken av disse tilbakemeldingsstilene tror du vil hjelpe deg å lære mest?
                                 </label>
                                 <div className="space-y-2">
                                     {[
-                                        { value: 'A', text: 'Just the standard Python error message.' },
-                                        { value: 'B', text: 'An explanation of the error and the complete, corrected code.' },
-                                        { value: 'C', text: 'An explanation of the error and hints that guide me to fix it myself.' },
-                                        { value: 'D', text: "I'm not sure." }
+                                        { value: 'A', text: 'Bare standard Python-feilmelding.' },
+                                        { value: 'B', text: 'En forklaring av feilen og den fullstendige, korrigerte koden.' },
+                                        { value: 'C', text: 'En forklaring av feilen og hint som veileder meg til å fikse den selv.' },
+                                        { value: 'D', text: "Jeg er ikke sikker." }
                                     ].map(({ value, text }) => (
                                         <label key={value} className="flex items-center text-gray-900">
                                             <input
@@ -105,7 +105,7 @@ export default function OverallSurvey({ formData, onFormChange, onSubmit }: Over
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Please explain your choice for the question above.
+                                    Vennligst forklar ditt valg for spørsmålet ovenfor.
                                 </label>
                                 <textarea
                                     value={formData.feedbackStyleReason}
@@ -118,7 +118,7 @@ export default function OverallSurvey({ formData, onFormChange, onSubmit }: Over
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Do you have any other comments about your experience with the programming tool today? What did you like most, and what did you like least?
+                                    Har du andre kommentarer om din opplevelse med programmeringsverktøyet i dag? Hva likte du best, og hva likte du minst?
                                 </label>
                                 <textarea
                                     value={formData.otherComments}
@@ -133,7 +133,7 @@ export default function OverallSurvey({ formData, onFormChange, onSubmit }: Over
 
                 <div className="flex justify-end mt-8">
                     <button onClick={onSubmit} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                        Complete Survey
+                        Fullfør undersøkelse
                     </button>
                 </div>
             </div>
