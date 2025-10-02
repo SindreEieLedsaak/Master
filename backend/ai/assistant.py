@@ -30,7 +30,6 @@ class Assistant:
                 api_version="2024-10-21",
             )
             self.conversation_history = []
-            self.add_system_message(system_prompt)
             self._initialized = True
 
     @classmethod
@@ -41,6 +40,12 @@ class Assistant:
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
+    
+    def set_system_prompt(self):
+        """
+        Set the system prompt for the assistant.
+        """
+        self.add_system_message(system_prompt)
 
     def add_system_message(self, message: str):
         """
@@ -62,9 +67,6 @@ class Assistant:
         try:
             if code:
                 code = f"Here is the code: {code}\n\n"
-            
-
-            
             
             self.conversation_history.append({"role": "user", "content": prompt})
             response = self.client.chat.completions.create(

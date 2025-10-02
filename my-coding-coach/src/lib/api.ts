@@ -7,6 +7,9 @@ import * as AI from './api/ai';
 import * as Suggestions from './api/suggestions';
 import * as Auth from './api/auth';
 import * as Students from './api/students';
+import * as Survey from './api/survey';
+
+
 
 export const apiClient = {
     // Code Analysis
@@ -23,6 +26,8 @@ export const apiClient = {
     getAssistantResponse: Assistant.getAssistantResponse,
     clearAssistant: Assistant.clearAssistant,
     addSystemMessage: Assistant.addSystemMessage,
+    createAssistantSession: Assistant.createAssistantSession,
+    deleteAssistantSession: Assistant.deleteAssistantSession,
 
     // Suggestions CRUD
     getSuggestions: Suggestions.getSuggestions,
@@ -46,4 +51,11 @@ export const apiClient = {
     // Editor state
     loadEditorState: Students.loadEditorState,
     saveEditorState: Students.saveEditorState,
+
+    // Survey
+    startSurvey: Survey.startSurvey,
+    submitPreSurvey: Survey.submitPreSurvey,
+    saveTaskResult: Survey.saveTaskResult,
+    submitPostTaskSurvey: Survey.submitPostTaskSurvey,
+    submitOverallSurvey: Survey.submitOverallSurvey,
 }; 

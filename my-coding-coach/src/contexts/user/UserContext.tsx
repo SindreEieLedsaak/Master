@@ -12,10 +12,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const hasInitialized = useRef(false);
 
     useEffect(() => {
-        // Only initialize once
         if (hasInitialized.current) return;
 
-        // Check for user in localStorage on mount
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             try {
@@ -31,11 +29,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const handleSetUser = (newUser: User | null) => {
-        // Prevent unnecessary updates
         if (JSON.stringify(user) === JSON.stringify(newUser)) {
             return;
         }
-
         setUser(newUser);
         if (newUser) {
             localStorage.setItem('user', JSON.stringify(newUser));

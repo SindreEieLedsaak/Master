@@ -40,18 +40,13 @@ class StudentService:
         # Decrypt the token for use
         try:
             decrypted_token = self.auth_service.decrypt_token(encrypted_gitlab_token)
-            print(f"🔓 Token decrypted successfully. Length: {len(decrypted_token)}")
-            print(f"🔑 Token starts with: {decrypted_token[:10]}...")
         except Exception as e:
-            print(f"❌ Failed to decrypt token: {e}")
             raise ValueError("Invalid GitLab token. Please re-authenticate.")
         
         result = self.gitlab_service.store_projects_for_student(
             student_id=student.id,
             gitlab_username=student.gitlab_username,
             gitlab_token=decrypted_token)
-
-
         return result
 
 

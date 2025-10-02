@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from '@/contexts/user/UserContext';
+import { SurveyProvider } from '@/contexts/survey/SurveyContext';
 import Navbar from '@/components/Navbar';
+import SurveyFloatingButton from '@/components/survey/SurveyFloatingButton';
 import { Toaster } from 'react-hot-toast';
 
 const geistSans = Geist({
@@ -31,9 +33,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <UserProvider>
-          <Navbar />
-          {children}
-          <Toaster position="top-right" />
+          <SurveyProvider>
+            <Navbar />
+            {children}
+            <SurveyFloatingButton />
+            <Toaster position="top-right" />
+          </SurveyProvider>
         </UserProvider>
       </body>
     </html>

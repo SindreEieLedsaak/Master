@@ -26,7 +26,7 @@ MODE = os.getenv("MODE", "dev")
 # --- JWT Configuration ---
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 120  # 2 hours to accommodate long surveys
 
 if not SECRET_KEY:
     if MODE != "dev":
