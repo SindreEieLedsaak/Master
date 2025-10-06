@@ -74,7 +74,6 @@ class Assistant:
                 messages=self.conversation_history + [{"role": "user", "content": code}]
             )
             self.conversation_history.append({"role": "assistant", "content": response.choices[0].message.content.strip() or ""})
-            print(self.conversation_history)
             return response.choices[0].message.content.strip() or ""
         except Exception as e:
             print(f"Error getting assistant response: {e}")
