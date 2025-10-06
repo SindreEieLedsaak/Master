@@ -15,7 +15,7 @@ export default function SurveyIntro({ selectedSurvey, onBack, onContinue }: Surv
                 </h1>
                 <div className="space-y-4 text-gray-700">
                     <p>
-                        Takk for at du deltar i vår studie. Tilbakemeldingene dine er svært verdifulle for vår forskning
+                        Takk for at du deltar i min studie. Tilbakemeldingene dine er svært verdifulle for vår forskning
                         om hvordan vi kan bygge bedre læringsverktøy for programmerere.
                     </p>
                     <p>
@@ -26,7 +26,7 @@ export default function SurveyIntro({ selectedSurvey, onBack, onContinue }: Surv
                         Det finnes ingen riktige eller gale svar. Vi tester verktøyet, ikke deg.
                     </p>
                     <p>
-                        Hele økten bør ta omtrent 45 minutter.
+                        Hele økten bør ta omtrent 20 minutter.
                     </p>
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
                         <p className="text-blue-800 font-medium">Valgt undersøkelse: {selectedSurvey.name}</p>

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Phase, SurveyConfig } from '@/lib/survey/types';
+import { generateParticipantId } from '@/lib/survey/utils';
 
 interface SurveyContextType {
     isSurveyMode: boolean;
@@ -10,7 +11,7 @@ interface SurveyContextType {
     participantId: string | null;
     selectedSurvey: SurveyConfig | null;
     timeElapsed: number;
-    startSurvey: (config: SurveyConfig, participantId: string) => void;
+    startSurvey: (config: SurveyConfig) => void;
     endSurvey: () => void;
     setPhase: (phase: Phase) => void;
     setNavigationEnabled: (enabled: boolean) => void;
@@ -59,9 +60,10 @@ export function SurveyProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('survey-state', JSON.stringify(state));
     }, [isSurveyMode, currentPhase, enableNavigation, participantId, selectedSurvey, timeElapsed]);
 
-    const startSurvey = (config: SurveyConfig, id: string) => {
+    const startSurvey = (config: SurveyConfig) => {
+        const generatedId = generateParticipantId();
         setSelectedSurvey(config);
-        setParticipantId(id);
+        setParticipantId(generatedId);
         setIsSurveyMode(true);
         setEnableNavigation(false);
         setTimeElapsed(0);
@@ -117,7 +119,22 @@ export function SurveyProvider({ children }: { children: ReactNode }) {
 export function useSurvey() {
     const context = useContext(SurveyContext);
     if (context === undefined) {
-        throw new Error('useSurvey must be used within a SurveyProvider');
+        // Return a default context instead of throwing an error
+        // This prevents crashes when the hook is used outside the provider
+        return {
+            isSurveyMode: false,
+            currentPhase: null,
+            enableNavigation: false,
+            participantId: null,
+            selectedSurvey: null,
+            timeElapsed: 0,
+            startSurvey: () => { },
+            endSurvey: () => { },
+            setPhase: () => { },
+            setNavigationEnabled: () => { },
+            setTimeElapsed: () => { },
+            returnToSurvey: () => { }
+        };
     }
     return context;
 }

@@ -12,20 +12,18 @@ export default function PreTaskSurvey({ formData, onFormChange, onBack, onSubmit
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">Spørreskjema før eksperiment</h2>
-                <div className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Deltaker-ID *
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.participantId}
-                            onChange={(e) => onFormChange({ participantId: e.target.value })}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            required
-                        />
-                    </div>
 
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-center">
+                        <div className="ml-3">
+                            <p className="text-sm text-blue-700">
+                                <strong>Deltaker-ID:</strong> <span className="font-mono text-blue-900">{formData.participantId}</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Hovedstudieretning *

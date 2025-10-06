@@ -34,8 +34,7 @@ Koden nedenfor har en variabel som skygger en innebygd Python-funksjon, noe som 
 
 **Forventet utskrift:** ['tool', 'python']
 `,
-        main: `
-# Funksjonen nedenfor skal filtrere ord lengre enn 3 tegn.
+        main: `# Funksjonen nedenfor skal skrive ut alle ord som er lengre enn 3 tegn. Se Task.md for mer informasjon.
 def get_word_count_and_filter(word_list):
     len = 0
     long_words = []
@@ -58,9 +57,7 @@ Funksjonen nedenfor skal sjekke for tilstøtende like verdier, men har en indeks
 
 **Forventet utskrift:** 1 (for testtilfelle [1,2,2,3])
 `,
-        main: `
-
-# Funksjonen nedenfor skal sjekke og skrive ut antall tilstøtende like verdier.
+        main: `# Funksjonen nedenfor skal sjekke og skrive ut antall tilstøtende like verdier.
 def has_adjacent_duplicate(items):
     adjacent_duplicates = []
     for i in range(len(items)):
@@ -83,7 +80,8 @@ Funksjonen skal telle vokaler i hvert ord separat, men har et områdeproblem.
 
 **Forventet utskrift:** [1, 1] (for "cat" og "python")
 `,
-        main: `def count_vowels_per_word(words):
+        main: `# Funksjonen nedenfor skal telle vokaler i hvert ord separat. Se Task.md for mer informasjon.
+def count_vowels_per_word(words):
     vowels = "aeiou"
     counts = []
     vowel_count = 0     
@@ -95,7 +93,7 @@ Funksjonen skal telle vokaler i hvert ord separat, men har et områdeproblem.
     return counts
 
 print(count_vowels_per_word(["cat", "python"]))
-Forventet utskrift: [1, 1]`,
+#Forventet utskrift: [1, 1]`,
         verify: (out: string) => out.includes('[1, 1]')
     },
     {
@@ -199,5 +197,5 @@ print("Besøk forskjellige sider ved å bruke navigasjonslinjen.")
 
 export const TIMER_LIMITS = {
     TASK: 420, // 7 minutter
-    NAVIGATE: 60, // 10 minutter
+    NAVIGATE: 600, // 10 minutter
 } as const;

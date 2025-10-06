@@ -27,6 +27,7 @@ import {
     OverallSurveyFormData
 } from '@/lib/survey/types';
 import { TASKS, EXPLORATION_FILES, NAVIGATION_FILES } from '@/lib/survey/constants';
+import { generateParticipantId } from '@/lib/survey/utils';
 
 // Custom hooks
 import { useSurveyTimer } from '@/hooks/survey/useSurveyTimer';
@@ -62,7 +63,7 @@ export default function SurveyPageNew() {
 
     // Form state
     const [preFormData, setPreFormData] = useState<PreSurveyFormData>({
-        participantId: contextParticipantId || '',
+        participantId: contextParticipantId || generateParticipantId(),
         fieldOfStudy: '',
         pythonConfidence: 3,
         usedAiBefore: null,
@@ -150,7 +151,7 @@ export default function SurveyPageNew() {
             setAuthExpired(false);
             // Reset form data to defaults
             setPreFormData({
-                participantId: '',
+                participantId: generateParticipantId(),
                 fieldOfStudy: '',
                 pythonConfidence: 3,
                 usedAiBefore: null,
@@ -195,12 +196,15 @@ export default function SurveyPageNew() {
 
     const handleStartSurvey = async (config: SurveyConfig) => {
         setSelectedSurvey(config);
+        // Generate participant ID when survey is selected
+        const generatedId = generateParticipantId();
+        setPreFormData(prev => ({ ...prev, participantId: generatedId }));
         await apiClient.startSurvey();
         setPhase('intro');
     };
 
     const handleSubmitPreSurvey = async () => {
-        if (!preFormData.participantId.trim() || !preFormData.fieldOfStudy.trim() || preFormData.usedAiBefore === null) {
+        if (!preFormData.fieldOfStudy.trim() || preFormData.usedAiBefore === null) {
             toast.error('Please complete all required fields');
             return;
         }
@@ -215,7 +219,7 @@ export default function SurveyPageNew() {
             });
 
             // Start survey with context and begin first task
-            startSurvey(selectedSurvey!, preFormData.participantId);
+            startSurvey(selectedSurvey!);
             setCurrentTask(0);
             loadTask(0);
             setTimeElapsed(0);
@@ -310,6 +314,7 @@ export default function SurveyPageNew() {
                 setTimeElapsed(0);
                 setIsTimerActive(true);
                 setPhase('navigate');
+                router.push('/');
             }
         } catch (error: any) {
             if (error?.surveyMode) {
