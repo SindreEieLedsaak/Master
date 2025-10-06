@@ -4,8 +4,11 @@ import "./globals.css";
 import { UserProvider } from '@/contexts/user/UserContext';
 import { SurveyProvider } from '@/contexts/survey/SurveyContext';
 import Navbar from '@/components/Navbar';
-import SurveyFloatingButton from '@/components/survey/SurveyFloatingButton';
+
 import { Toaster } from 'react-hot-toast';
+
+import { lazy, Suspense } from 'react';
+const SurveyFloatingButton = lazy(() => import('@/components/survey/SurveyFloatingButton'));
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,7 +39,7 @@ export default function RootLayout({
           <SurveyProvider>
             <Navbar />
             {children}
-            <SurveyFloatingButton />
+            <Suspense fallback={<div>Loading...</div>}><SurveyFloatingButton /></Suspense>
             <Toaster position="top-right" />
           </SurveyProvider>
         </UserProvider>

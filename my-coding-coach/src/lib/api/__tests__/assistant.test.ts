@@ -22,9 +22,9 @@ describe('assistant api', () => {
     });
 
     it('clearAssistant posts to clear', async () => {
-        (api.post as any).mockResolvedValue({ data: { message: 'cleared' } });
+        (api.post as any).mockResolvedValue({ data: { message: 'cleared', session_id: 'test-session' } });
         const res = await clearAssistant();
-        expect(api.post).toHaveBeenCalledWith('/api/assistant/clear');
+        expect(api.post).toHaveBeenCalledWith('/api/assistant/clear', { session_id: undefined, system_message: undefined });
         expect(res.message).toBe('cleared');
     });
 
