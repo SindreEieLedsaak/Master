@@ -169,7 +169,16 @@ async def refresh_token(
 @router.post('/logout')
 async def logout(response: Response):
     """Clear authentication cookies"""
-    response.delete_cookie("gitlab_token")
-    response.delete_cookie("app_token")
-    response.delete_cookie("app_user")
-    return {"message": "Logged out successfully"} 
+    # Mirror domain/flags used when setting cookies to ensure deletion
+    if MODE == "dev":
+        cookie_domain = "localhost"
+        use_secure = False
+    else:
+        parsed_frontend = urlparse(frontend_url)
+        cookie_domain = parsed_frontend.hostname or 'localhost'
+        use_secure = parsed_frontend.scheme == 'https'
+
+    response.delete_cookie("gitlab_token", domain=cookie_domain, secure=use_secure, httponly=True, samesite="lax")
+    response.delete_cookie("app_token", domain=cookie_domain, secure=use_secure, httponly=True, samesite="lax")
+    response.delete_cookie("app_user", domain=cookie_domain, secure=use_secure, samesite="lax")
+    return {"message": "Logged out successfully"}

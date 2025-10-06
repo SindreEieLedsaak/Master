@@ -21,18 +21,27 @@ oauth.register(
     client_kwargs={'scope': 'openid read_user profile email read_api'}
 )
 
+MODE = os.getenv("MODE", "dev")
+
 # --- JWT Configuration ---
-SECRET_KEY = os.getenv("SECRET_KEY", "a_very_secret_key_that_should_be_in_env")
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 120  # 2 hours to accommodate long surveys
+
+if not SECRET_KEY:
+    if MODE != "dev":
+        raise RuntimeError("SECRET_KEY must be set in production")
+    # Development fallback
+    SECRET_KEY = "dev-secret-key"
 
 # --- Encryption Configuration ---
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
 if not ENCRYPTION_KEY:
-    # Generate a key for development (should be set in production)
+    if MODE != "dev":
+        raise RuntimeError("ENCRYPTION_KEY must be set in production")
+    # Generate a key for development (not logged)
     ENCRYPTION_KEY = Fernet.generate_key().decode()
-    print(f"⚠️  Generated encryption key: {ENCRYPTION_KEY}")
-    print("🔧 Set ENCRYPTION_KEY in your .env file for production!")
+    print("⚠️  Generated ephemeral ENCRYPTION_KEY for development. Set ENCRYPTION_KEY in .env for production.")
 
 class AuthService:
     def __init__(self):

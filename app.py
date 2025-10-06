@@ -22,13 +22,20 @@ from backend.routers.gitlab_router import router as gitlab_router
 from backend.routers.student_router import router as student_router
 from backend.routers.ai_router import router as ai_router
 from backend.routers.suggestion_router import router as suggestion_router
+from backend.routers.survey_router import router as survey_router
 
 load_dotenv()
 
 app = FastAPI()
 
 # Add Session Middleware for Authlib
-app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "a_default_secret_key"))
+MODE = os.getenv("MODE", "dev")
+SESSION_SECRET = os.getenv("SECRET_KEY")
+if MODE != "dev" and not SESSION_SECRET:
+    raise RuntimeError("SECRET_KEY must be set for sessions in production")
+if not SESSION_SECRET:
+    SESSION_SECRET = "dev-session-secret"
+app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
 
 # Add CORS Middleware
 mode = os.getenv("MODE", "dev")
@@ -41,8 +48,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[frontend_url],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 # Include all routers with a single /api prefix
@@ -53,6 +60,7 @@ api_v1_router.include_router(gitlab_router)
 api_v1_router.include_router(student_router)
 api_v1_router.include_router(ai_router)
 api_v1_router.include_router(suggestion_router)
+api_v1_router.include_router(survey_router)
 
 app.include_router(api_v1_router)
 

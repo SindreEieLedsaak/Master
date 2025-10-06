@@ -2,7 +2,7 @@
 
 import { useUser } from '@/contexts/user/UserContext';
 import { apiClient } from '@/lib/api';
-import { Code, Lightbulb, BookOpen, TrendingUp, Bot, GitMerge, Loader2, BarChart3, Sparkles } from 'lucide-react';
+import { Code, Lightbulb, BookOpen, TrendingUp, Bot, GitMerge, Loader2, BarChart3, Sparkles, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
@@ -159,9 +159,8 @@ const Dashboard = () => {
         </ol>
       </div>
 
-      {/* Removed old duplicate sync section */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <Link href="/editor" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
           <Code className="h-8 w-8 text-blue-600 mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Code Editor</h3>
@@ -182,17 +181,21 @@ const Dashboard = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Resources</h3>
           <p className="text-gray-600 text-sm">Learning materials and documentation</p>
         </Link>
+        <Link href="/survey" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow border-2 border-orange-200">
+          <FileText className="h-8 w-8 text-orange-600 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Survey Mode</h3>
+          <p className="text-gray-600 text-sm">Participate in our research study</p>
+        </Link>
 
       </div>
+
     </div>
   );
 };
 
-// Component for the pre-login landing page
 const LandingPage = () => {
   return (
     <div className="w-full">
-      {/* Hero Section */}
       <section className="bg-blue-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
