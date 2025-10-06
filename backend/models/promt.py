@@ -2,10 +2,17 @@ from pydantic import BaseModel
 
 class SystemMessageRequest(BaseModel):
     message: str
+    session_id: str | None = None
 
 class AssistantRequest(BaseModel):
     prompt: str
     code: str | None = None
+    add_system_prompt: bool = True
+    session_id: str | None = None
+
+class SessionRequest(BaseModel):
+    session_id: str | None = None
+    system_message: str | None = None
 
 class AssistantResponse(BaseModel):
     response: str

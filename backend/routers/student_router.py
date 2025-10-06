@@ -54,8 +54,7 @@ def test_cookies(request: Request, current_user: Dict[str, str] = Depends(get_cu
     gitlab_token = request.cookies.get("gitlab_token")
     return {
         "all_cookies": list(all_cookies.keys()),
-        "gitlab_token_present": bool(gitlab_token),
-        "gitlab_token_preview": gitlab_token[:20] + "..." if gitlab_token else None
+        "gitlab_token_present": bool(gitlab_token)
     }
 
 @router.post("/students/sync", tags=["Students"])

@@ -2,8 +2,13 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from '@/contexts/user/UserContext';
+import { SurveyProvider } from '@/contexts/survey/SurveyContext';
 import Navbar from '@/components/Navbar';
+
 import { Toaster } from 'react-hot-toast';
+
+import { lazy, Suspense } from 'react';
+const SurveyFloatingButton = lazy(() => import('@/components/survey/SurveyFloatingButton'));
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,9 +36,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <UserProvider>
-          <Navbar />
-          {children}
-          <Toaster position="top-right" />
+          <SurveyProvider>
+            <Navbar />
+            {children}
+            <Suspense fallback={<div>Loading...</div>}><SurveyFloatingButton /></Suspense>
+            <Toaster position="top-right" />
+          </SurveyProvider>
         </UserProvider>
       </body>
     </html>

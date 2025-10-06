@@ -64,8 +64,18 @@ api.interceptors.response.use(
                     isRefreshing = false;
                     processQueue(error, null);
 
-                    // Only redirect if we're in a browser environment
+                    // Only redirect if we're in a browser environment and not in survey mode
                     if (typeof window !== 'undefined') {
+                        const surveyState = localStorage.getItem('survey-state');
+                        if (surveyState) {
+                            const parsed = JSON.parse(surveyState);
+                            if (parsed.isSurveyMode) {
+                                console.log('Token refresh failed during survey - preserving survey state');
+                                // Don't redirect immediately, let survey handle it gracefully
+                                return Promise.reject({ ...error, surveyMode: true });
+                            }
+                        }
+
                         console.log('Token refresh failed, redirecting to login...');
                         window.location.href = `${API_BASE_URL}/api/auth/login`;
                     }
@@ -76,8 +86,21 @@ api.interceptors.response.use(
                 isRefreshing = false;
                 processQueue(refreshError, null);
 
-                // Only redirect if we're in a browser environment
+                // Only redirect if we're in a browser environment and not in survey mode
                 if (typeof window !== 'undefined') {
+                    const surveyState = localStorage.getItem('survey-state');
+                    if (surveyState) {
+                        const parsed = JSON.parse(surveyState);
+                        if (parsed.isSurveyMode) {
+                            console.log('Token refresh error during survey - preserving survey state');
+                            // Don't redirect immediately, let survey handle it gracefully
+                            return Promise.reject({
+                                ...(typeof refreshError === 'object' ? refreshError : { message: refreshError }),
+                                surveyMode: true
+                            });
+                        }
+                    }
+
                     console.log('Token refresh error, redirecting to login...');
                     window.location.href = `${API_BASE_URL}/api/auth/login`;
                 }

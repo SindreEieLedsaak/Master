@@ -1,26 +1,35 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-/**
- * Text Formatting Utilities for AI Responses
- * 
- * This module provides utilities to format AI-generated text into properly styled React components.
- * 
- * Available functions:
- * - formatAIResponseText(): Comprehensive formatting with headings, lists, code blocks
- * - FormattedAIText: React component wrapper for full formatting
- * - formatSimpleAIText(): Basic formatting for shorter responses  
- * - SimpleFormattedText: React component wrapper for simple formatting
- * 
- * Supported markdown-like syntax:
- * - **bold text** → Bold formatting
- * - ## Headings → H2/H3 elements
- * - # Single heading → H1 element
- * - - List items → Bullet lists
- * - ``` Code blocks → Syntax highlighted code
- * - --- → Horizontal dividers
- */
+// CodeBlock component with copy functionality
+const CodeBlock: React.FC<{ code: string; index: number }> = ({ code, index }) => {
+    const [copied, setCopied] = useState(false);
 
-// Function to format AI response text with proper styling
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(code);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+        }
+    };
+
+    return (
+        <div className="relative group mb-4 w-full">
+            <pre className="bg-gray-100 p-4 rounded-lg border text-sm font-mono overflow-x-auto w-full min-w-0">
+                <code className="text-gray-800 break-words">{code}</code>
+            </pre>
+            <button
+                onClick={handleCopy}
+                className="absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10 flex-shrink-0"
+                title="Copy code"
+            >
+                {copied ? '✓ Copied!' : 'Copy'}
+            </button>
+        </div>
+    );
+};
+
 export const formatAIResponseText = (text: string): React.ReactElement[] => {
     const lines = text.split('\n');
     let currentSection: React.ReactElement[] = [];
@@ -44,9 +53,11 @@ export const formatAIResponseText = (text: string): React.ReactElement[] => {
     const flushCodeBlock = () => {
         if (codeBlock.trim()) {
             currentSection.push(
-                <pre key={`code-${currentSection.length}`} className="bg-gray-100 p-4 rounded-lg border text-sm font-mono overflow-x-auto mb-4">
-                    <code className="text-gray-800">{codeBlock.trim()}</code>
-                </pre>
+                <CodeBlock
+                    key={`code-${currentSection.length}`}
+                    code={codeBlock.trim()}
+                    index={currentSection.length}
+                />
             );
             codeBlock = '';
         }
@@ -157,7 +168,7 @@ export const FormattedAIText: React.FC<FormattedTextProps> = ({ text, className 
     const formattedElements = formatAIResponseText(text);
 
     return (
-        <div className={`prose prose-gray max-w-none ${className}`}>
+        <div className={`prose prose-gray max-w-none w-full min-w-0 ${className}`}>
             {formattedElements}
         </div>
     );
