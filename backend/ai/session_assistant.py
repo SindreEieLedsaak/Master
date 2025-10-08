@@ -110,7 +110,6 @@ class SessionAssistant:
             
             # Add assistant response to session history
             self.sessions[session_id].append({"role": "assistant", "content": assistant_response})
-            print(self.sessions[session_id])
             return assistant_response
             
         except Exception as e:
