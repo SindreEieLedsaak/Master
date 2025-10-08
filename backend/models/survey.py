@@ -10,20 +10,24 @@ class PreTaskSurveyRequest(BaseModel):
     use_of_AI: bool
     which_AI: Optional[str] = None
 
+class StartSurveyRequest(BaseModel):
+    survey_type: str
+
 
 class SurveySession(BaseModel):
     participant_id: str
     started_at: datetime
     completed_at: Optional[datetime] = None
     survey_id: str
+    survey_type: Optional[str] = None  
     current_task_index: int = 1
-
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
     )
 
 class TaskResultRequest(BaseModel):
     participant_id: str
+    survey_type: str
     task_index: int = Field(ge=1, le=4)
     time_taken: int = Field(ge=1, le=7*60) # in seconds
     finished_within_time: bool
@@ -39,6 +43,7 @@ class PostTaskSurveyRequest(BaseModel):
     helpful_fix: int = Field(ge=1, le=5)
     thought_process: str
     feedback: str
+    survey_type: str
 
 class SuSItem(BaseModel):
     q7: int = Field(ge=1, le=5)
@@ -54,6 +59,7 @@ class SuSItem(BaseModel):
 
 class OverallSurveyRequest(BaseModel):
     participant_id: str
+    survey_type: str
     sus : SuSItem
     future_use_likelihood: int = Field(ge=1, le=5)
     preferred_feedback_style: str

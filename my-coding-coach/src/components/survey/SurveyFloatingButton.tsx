@@ -6,7 +6,7 @@ import { useSurvey } from '@/contexts/survey/SurveyContext';
 import { TIMER_LIMITS } from '@/lib/survey/constants';
 
 export default function SurveyFloatingButton() {
-    const { isSurveyMode, currentPhase, enableNavigation, timeElapsed, setTimeElapsed, setPhase, returnToSurvey } = useSurvey();
+    const { isSurveyMode, currentPhase, enableNavigation, timeElapsed, setTimeElapsed, setPhase, returnToSurvey, skipToSurvey } = useSurvey();
 
     // Update timer when in navigate phase on other pages
     useEffect(() => {
@@ -64,13 +64,21 @@ export default function SurveyFloatingButton() {
                 <p className="text-xs text-gray-600 mb-3">
                     Continue exploring the app. The final questionnaire will appear in {formatTime(timeRemaining)}.
                 </p>
-                <button
-                    onClick={returnToSurvey}
-                    className="w-full bg-blue-600 text-white px-3 py-2 rounded text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-1"
-                >
-                    <span>Return to Survey</span>
-                    <ArrowRight className="h-4 w-4" />
-                </button>
+                <div className="flex items-center space-x-1">
+                    <button
+                        onClick={returnToSurvey}
+                        className="w-full bg-blue-600 text-white px-3 py-2 rounded text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-1"
+                    >
+                        <p>Return to Survey</p>
+                    </button>
+                    <button
+                        onClick={skipToSurvey}
+                        className="w-full bg-violet-600 text-white px-3 py-2 rounded text-sm font-medium hover:bg-violet-700 transition-colors flex items-center justify-center space-x-1"
+                    >
+                        <p>Skip To Last Survey</p>
+                        <ArrowRight className="h-4 w-4" />
+                    </button>
+                </div>
             </div>
         </div>
     );

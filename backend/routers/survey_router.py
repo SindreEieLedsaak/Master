@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends
-from backend.models.survey import OverallSurveyRequest, PostTaskSurveyRequest, PreTaskSurveyRequest, TaskResultRequest
+from backend.models.survey import OverallSurveyRequest, PostTaskSurveyRequest, PreTaskSurveyRequest, StartSurveyRequest, TaskResultRequest
 from backend.services.survey_service import SurveyService
 from backend.dependencies import get_current_user
 
 router = APIRouter(prefix="/survey", tags=["Survey"])
 
 @router.post("/start")
-def start_survey(survey_service: SurveyService = Depends(SurveyService), current_user = Depends(get_current_user)):
+def start_survey(request: StartSurveyRequest, survey_service: SurveyService = Depends(SurveyService), current_user = Depends(get_current_user)):
     """Start a new survey session"""
-    session = survey_service.start_session(current_user["id"])
+    session = survey_service.start_session(current_user["id"], request.survey_type)
     return {"message": "Survey session started", "session_id": session.survey_id}
 
 @router.post("/pre-task")

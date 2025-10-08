@@ -11,12 +11,13 @@ interface SurveyContextType {
     participantId: string | null;
     selectedSurvey: SurveyConfig | null;
     timeElapsed: number;
-    startSurvey: (config: SurveyConfig) => void;
+    startSurvey: (config: SurveyConfig, participantId?: string) => void;
     endSurvey: () => void;
     setPhase: (phase: Phase) => void;
     setNavigationEnabled: (enabled: boolean) => void;
     setTimeElapsed: (time: number) => void;
     returnToSurvey: () => void;
+    skipToSurvey: () => void;
 }
 
 const SurveyContext = createContext<SurveyContextType | undefined>(undefined);
@@ -60,8 +61,8 @@ export function SurveyProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('survey-state', JSON.stringify(state));
     }, [isSurveyMode, currentPhase, enableNavigation, participantId, selectedSurvey, timeElapsed]);
 
-    const startSurvey = (config: SurveyConfig) => {
-        const generatedId = generateParticipantId();
+    const startSurvey = (config: SurveyConfig, participantId?: string) => {
+        const generatedId = participantId || generateParticipantId();
         setSelectedSurvey(config);
         setParticipantId(generatedId);
         setIsSurveyMode(true);
@@ -96,6 +97,11 @@ export function SurveyProvider({ children }: { children: ReactNode }) {
         window.location.href = '/survey';
     };
 
+    const skipToSurvey = () => {
+        setCurrentPhase('overall');
+        window.location.href = '/survey';
+    };
+
     return (
         <SurveyContext.Provider value={{
             isSurveyMode,
@@ -109,7 +115,8 @@ export function SurveyProvider({ children }: { children: ReactNode }) {
             setPhase,
             setNavigationEnabled,
             setTimeElapsed,
-            returnToSurvey
+            returnToSurvey,
+            skipToSurvey
         }}>
             {children}
         </SurveyContext.Provider>
@@ -117,10 +124,14 @@ export function SurveyProvider({ children }: { children: ReactNode }) {
 }
 
 export function useSurvey() {
-    const context = useContext(SurveyContext);
+    // To avoid invalid hook call, check if we're in a React component before calling useContext
+    let context;
+    try {
+        context = useContext(SurveyContext);
+    } catch (e) {
+        context = undefined;
+    }
     if (context === undefined) {
-        // Return a default context instead of throwing an error
-        // This prevents crashes when the hook is used outside the provider
         return {
             isSurveyMode: false,
             currentPhase: null,
@@ -133,7 +144,8 @@ export function useSurvey() {
             setPhase: () => { },
             setNavigationEnabled: () => { },
             setTimeElapsed: () => { },
-            returnToSurvey: () => { }
+            returnToSurvey: () => { },
+            skipToSurvey: () => { }
         };
     }
     return context;

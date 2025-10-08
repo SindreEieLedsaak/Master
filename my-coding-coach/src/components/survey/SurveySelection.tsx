@@ -24,7 +24,7 @@ export default function SurveySelection({ onSelectSurvey, onQuit }: SurveySelect
 
                 <div className="grid gap-6 md:grid-cols-3">
                     {SURVEY_CONFIGS.map((config) => (
-                        <div key={config.id} className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                        <div key={config.survey_type} className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
                             <h3 className="text-lg font-semibold text-gray-900 mb-3">{config.name}</h3>
                             <button
                                 onClick={() => onSelectSurvey(config)}
