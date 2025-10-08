@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES") or 30)
 
 MODE = os.getenv('MODE', 'dev')
 backend_url = os.getenv("BACKEND_URL")
