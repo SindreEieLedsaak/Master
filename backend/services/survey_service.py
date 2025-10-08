@@ -12,12 +12,13 @@ class SurveyService:
     overall_survey_collection = db["overall_survey"]
     survey_sessions_collection = db["survey_sessions"]
 
-    def start_session(self, participant_id: str) -> SurveySession:
+    def start_session(self, participant_id: str, survey_type: str) -> SurveySession:
         """Start a new survey session"""
         session = SurveySession(
             participant_id=participant_id,
             started_at=datetime.utcnow(),
             survey_id=str(uuid.uuid4()),
+            survey_type=survey_type,
             current_task_index=1
         )
         self.survey_sessions_collection.insert_one(session.model_dump(by_alias=True))

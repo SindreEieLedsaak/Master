@@ -4,11 +4,12 @@ from backend.services.auth_service import AuthService
 from backend.services.student_service import StudentService
 from datetime import timedelta
 import os
+import re
 from urllib.parse import urlparse
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES") or 30)
 
 MODE = os.getenv('MODE', 'dev')
 backend_url = os.getenv("BACKEND_URL")
@@ -57,48 +58,60 @@ async def auth_callback(
             cookie_domain = "localhost"
             use_secure = False
         else:
-            parsed_frontend = urlparse(frontend_url)
-            cookie_domain = parsed_frontend.hostname or 'localhost'
+            # Strip quotes from environment variable if present
+            clean_frontend_url = frontend_url.strip('"')
+            parsed_frontend = urlparse(clean_frontend_url)
+            hostname = parsed_frontend.hostname
+            # Don't set domain for IP addresses - browsers reject cookies with domain set to IP
+            is_ip = bool(re.match(r'^\d+\.\d+\.\d+\.\d+$', hostname or ''))
+            cookie_domain = None if is_ip else hostname
             use_secure = parsed_frontend.scheme == 'https'
 
         # Create redirect response (no token in URL)
+        clean_url = frontend_url.strip('"') if MODE != "dev" else frontend_url
         response = RedirectResponse(
-            url=f"{frontend_url}/auth/callback"
+            url=f"{clean_url}/auth/callback"
         )
         
         # Store GitLab token in secure cookie
         encrypted_token = auth_service.encrypt_token(gitlab_access_token)
-        response.set_cookie(
-            key="gitlab_token",
-            value=encrypted_token,
-            max_age=expires_in,  
-            httponly=True,       
-            secure=use_secure,   
-            samesite="lax",     
-            domain=cookie_domain 
-        )
+        cookie_kwargs = {
+            "key": "gitlab_token",
+            "value": encrypted_token,
+            "max_age": expires_in,
+            "httponly": True,
+            "secure": use_secure,
+            "samesite": "lax"
+        }
+        if cookie_domain:
+            cookie_kwargs["domain"] = cookie_domain
+        response.set_cookie(**cookie_kwargs)
         
         # Store application JWT in secure cookie
-        response.set_cookie(
-            key="app_token",
-            value=access_token,
-            max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-            httponly=True,
-            secure=use_secure,
-            samesite="lax",
-            domain=cookie_domain
-        )
+        cookie_kwargs = {
+            "key": "app_token",
+            "value": access_token,
+            "max_age": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            "httponly": True,
+            "secure": use_secure,
+            "samesite": "lax"
+        }
+        if cookie_domain:
+            cookie_kwargs["domain"] = cookie_domain
+        response.set_cookie(**cookie_kwargs)
         
         # Also set a minimal non-HTTP-only user hint (optional) to avoid exposing token
-        response.set_cookie(
-            key="app_user",
-            value=student.gitlab_username,
-            max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-            httponly=False,
-            secure=use_secure,
-            samesite="lax",
-            domain=cookie_domain
-        )
+        cookie_kwargs = {
+            "key": "app_user",
+            "value": student.gitlab_username,
+            "max_age": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            "httponly": False,
+            "secure": use_secure,
+            "samesite": "lax"
+        }
+        if cookie_domain:
+            cookie_kwargs["domain"] = cookie_domain
+        response.set_cookie(**cookie_kwargs)
         
         return response
 
@@ -147,19 +160,24 @@ async def refresh_token(
             cookie_domain = "localhost"
             use_secure = False
         else:
-            parsed_frontend = urlparse(frontend_url)
-            cookie_domain = parsed_frontend.hostname or 'localhost'
+            parsed_frontend = urlparse(frontend_url.strip('"'))
+            hostname = parsed_frontend.hostname
+            # Don't set domain for IP addresses - browsers reject cookies with domain set to IP
+            is_ip = bool(re.match(r'^\d+\.\d+\.\d+\.\d+$', hostname or ''))
+            cookie_domain = None if is_ip else hostname
             use_secure = parsed_frontend.scheme == 'https'
         
-        response.set_cookie(
-            key="app_token",
-            value=new_access_token,
-            max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-            httponly=True,
-            secure=use_secure,
-            samesite="lax",
-            domain=cookie_domain
-        )
+        cookie_kwargs = {
+            "key": "app_token",
+            "value": new_access_token,
+            "max_age": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            "httponly": True,
+            "secure": use_secure,
+            "samesite": "lax"
+        }
+        if cookie_domain:
+            cookie_kwargs["domain"] = cookie_domain
+        response.set_cookie(**cookie_kwargs)
         
         return {"message": "Token refreshed successfully", "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60}
         
@@ -174,11 +192,24 @@ async def logout(response: Response):
         cookie_domain = "localhost"
         use_secure = False
     else:
-        parsed_frontend = urlparse(frontend_url)
-        cookie_domain = parsed_frontend.hostname or 'localhost'
+        parsed_frontend = urlparse(frontend_url.strip('"'))
+        hostname = parsed_frontend.hostname
+        # Don't set domain for IP addresses - browsers reject cookies with domain set to IP
+        import re
+        is_ip = bool(re.match(r'^\d+\.\d+\.\d+\.\d+$', hostname or ''))
+        cookie_domain = None if is_ip else hostname
         use_secure = parsed_frontend.scheme == 'https'
 
-    response.delete_cookie("gitlab_token", domain=cookie_domain, secure=use_secure, httponly=True, samesite="lax")
-    response.delete_cookie("app_token", domain=cookie_domain, secure=use_secure, httponly=True, samesite="lax")
-    response.delete_cookie("app_user", domain=cookie_domain, secure=use_secure, samesite="lax")
+    # Delete cookies - omit domain parameter if it's None (for IP addresses)
+    delete_kwargs = {"secure": use_secure, "httponly": True, "samesite": "lax"}
+    if cookie_domain:
+        delete_kwargs["domain"] = cookie_domain
+    response.delete_cookie("gitlab_token", **delete_kwargs)
+    response.delete_cookie("app_token", **delete_kwargs)
+    
+    delete_kwargs_user = {"secure": use_secure, "samesite": "lax"}
+    if cookie_domain:
+        delete_kwargs_user["domain"] = cookie_domain
+    response.delete_cookie("app_user", **delete_kwargs_user)
+    
     return {"message": "Logged out successfully"}

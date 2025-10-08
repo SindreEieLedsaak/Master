@@ -287,12 +287,6 @@ export default function MultiFilePyodideRunner({
                             <span className="text-sm">Running...</span>
                         </div>
                     )}
-                    {status === 'success' && (
-                        <div className="flex items-center text-green-600">
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            <span className="text-sm">Success</span>
-                        </div>
-                    )}
                     {status === 'error' && (
                         <div className="flex items-center text-red-600">
                             <XCircle className="h-4 w-4 mr-1" />

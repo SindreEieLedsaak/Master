@@ -1,4 +1,5 @@
 import { api } from "../http";
+import { SurveyType } from "../survey/types";
 
 // Survey types
 export interface PreSurveyData {
@@ -11,6 +12,7 @@ export interface PreSurveyData {
 
 export interface TaskResultData {
     participant_id: string;
+    survey_type: string;
     task_index: number;
     time_taken: number;
     finished_within_time: boolean;
@@ -20,6 +22,7 @@ export interface TaskResultData {
 
 export interface PostTaskSurveyData {
     participant_id: string;
+    survey_type: string;
     task_index: number;
     finished_within_time: boolean;
     difficult_to_fix: number;
@@ -31,6 +34,7 @@ export interface PostTaskSurveyData {
 
 export interface OverallSurveyData {
     participant_id: string;
+    survey_type: string;
     sus: {
         q7: number; q8: number; q9: number; q10: number; q11: number;
         q12: number; q13: number; q14: number; q15: number; q16: number;
@@ -43,8 +47,9 @@ export interface OverallSurveyData {
 
 // Survey API functions
 
-export const startSurvey = async () => {
-    return api.post('/api/survey/start');
+export const startSurvey = async (surveyType: SurveyType) => {
+    console.log('surveyType', surveyType);
+    return api.post('/api/survey/start', { survey_type: surveyType });
 };
 
 export const submitPreSurvey = async (data: PreSurveyData) => {

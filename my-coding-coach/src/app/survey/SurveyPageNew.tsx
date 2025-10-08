@@ -71,6 +71,7 @@ export default function SurveyPageNew() {
     });
 
     const [postFormData, setPostFormData] = useState<PostTaskFormData>({
+        survey_type: selectedSurvey?.survey_type || 'none',
         fixedWithinTime: null,
         difficulty: null,
         helpfulUnderstand: null,
@@ -80,6 +81,7 @@ export default function SurveyPageNew() {
     });
 
     const [overallFormData, setOverallFormData] = useState<OverallSurveyFormData>({
+        survey_type: selectedSurvey?.survey_type || 'none',
         sus: { q7: 3, q8: 3, q9: 3, q10: 3, q11: 3, q12: 3, q13: 3, q14: 3, q15: 3, q16: 3 },
         futureUse: 3,
         feedbackStyle: '',
@@ -158,6 +160,7 @@ export default function SurveyPageNew() {
                 aiToolsUsed: ''
             });
             setPostFormData({
+                survey_type: selectedSurvey?.survey_type || 'none',
                 fixedWithinTime: null,
                 difficulty: null,
                 helpfulUnderstand: null,
@@ -166,6 +169,7 @@ export default function SurveyPageNew() {
                 feedbackReason: ''
             });
             setOverallFormData({
+                survey_type: selectedSurvey?.survey_type || 'none',
                 sus: { q7: 3, q8: 3, q9: 3, q10: 3, q11: 3, q12: 3, q13: 3, q14: 3, q15: 3, q16: 3 },
                 futureUse: 3,
                 feedbackStyle: '',
@@ -199,7 +203,7 @@ export default function SurveyPageNew() {
         // Generate participant ID when survey is selected
         const generatedId = generateParticipantId();
         setPreFormData(prev => ({ ...prev, participantId: generatedId }));
-        await apiClient.startSurvey();
+        await apiClient.startSurvey(config.survey_type);
         setPhase('intro');
     };
 
@@ -219,7 +223,7 @@ export default function SurveyPageNew() {
             });
 
             // Start survey with context and begin first task
-            startSurvey(selectedSurvey!);
+            startSurvey(selectedSurvey!, preFormData.participantId);
             setCurrentTask(0);
             loadTask(0);
             setTimeElapsed(0);
@@ -248,6 +252,7 @@ export default function SurveyPageNew() {
         try {
             await apiClient.saveTaskResult({
                 participant_id: preFormData.participantId,
+                survey_type: selectedSurvey?.survey_type || 'none',
                 task_index: currentTask + 1,
                 time_taken: timeElapsed,
                 finished_within_time: success,
@@ -281,6 +286,7 @@ export default function SurveyPageNew() {
         try {
             await apiClient.submitPostTaskSurvey({
                 participant_id: preFormData.participantId,
+                survey_type: selectedSurvey?.survey_type || 'none',
                 task_index: currentTask + 1,
                 finished_within_time: postFormData.fixedWithinTime,
                 difficult_to_fix: postFormData.difficulty,
@@ -297,11 +303,11 @@ export default function SurveyPageNew() {
                 helpfulUnderstand: null,
                 helpfulFix: null,
                 thoughtProcess: '',
-                feedbackReason: ''
+                feedbackReason: '',
+                survey_type: selectedSurvey?.survey_type || 'none'
             });
 
             if (currentTask < 3) {
-                // Next task
                 const nextTaskIndex = currentTask + 1;
                 setCurrentTask(nextTaskIndex);
                 loadTask(nextTaskIndex);
@@ -338,6 +344,7 @@ export default function SurveyPageNew() {
         try {
             await apiClient.submitOverallSurvey({
                 participant_id: preFormData.participantId,
+                survey_type: selectedSurvey?.survey_type || 'none',
                 sus: overallFormData.sus,
                 future_use_likelihood: overallFormData.futureUse,
                 preferred_feedback_style: overallFormData.feedbackStyle,

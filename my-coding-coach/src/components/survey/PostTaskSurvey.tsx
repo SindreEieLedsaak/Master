@@ -1,4 +1,6 @@
 import { PostTaskFormData } from '@/lib/survey/types';
+import { useContext } from 'react';
+import { useSurvey } from '@/contexts/survey/SurveyContext';
 
 interface PostTaskSurveyProps {
     currentTask: number;
@@ -6,7 +8,7 @@ interface PostTaskSurveyProps {
     onFormChange: (data: Partial<PostTaskFormData>) => void;
     onSubmit: () => void;
 }
-
+const selectedSurvey_type = useSurvey().selectedSurvey?.survey_type;
 export default function PostTaskSurvey({ currentTask, formData, onFormChange, onSubmit }: PostTaskSurveyProps) {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
