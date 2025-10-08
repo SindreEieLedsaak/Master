@@ -3,20 +3,20 @@ import { systemPrompt } from '@/utils/promts';
 
 export const SURVEY_CONFIGS: SurveyConfig[] = [
     {
-        id: 'hints',
+        survey_type: 'hints',
         name: 'Undersøkelse A',
         description: 'AI-assistenten vil gi hint og veiledning for å hjelpe deg løse problemer steg for steg.',
         aiEnabled: true,
         systemPrompt: systemPrompt
     },
     {
-        id: 'solutions',
+        survey_type: 'solutions',
         name: 'Undersøkelse B',
         description: 'AI-assistenten vil gi direkte løsninger og kode når du ber om hjelp.',
         aiEnabled: true,
     },
     {
-        id: 'terminal',
+        survey_type: 'terminal',
         name: 'Undersøkelse C',
         description: 'Ingen AI-assistanse - kun standard Python-feilmeldinger og terminalutskrift.',
         aiEnabled: false,

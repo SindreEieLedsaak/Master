@@ -4,10 +4,10 @@ export interface File {
     language: string;
 }
 
-export type SurveyType = 'hints' | 'solutions' | 'terminal';
+export type SurveyType = 'hints' | 'solutions' | 'terminal' | 'none';
 
 export interface SurveyConfig {
-    id: SurveyType;
+    survey_type: SurveyType;
     name: string;
     description: string;
     aiEnabled: boolean;
@@ -43,6 +43,7 @@ export interface PreSurveyFormData {
 }
 
 export interface PostTaskFormData {
+    survey_type: SurveyType;
     fixedWithinTime: boolean | null;
     difficulty: number | null;
     helpfulUnderstand: number | null;
@@ -52,6 +53,7 @@ export interface PostTaskFormData {
 }
 
 export interface OverallSurveyFormData {
+    survey_type: SurveyType;
     sus: {
         q7: number; q8: number; q9: number; q10: number; q11: number;
         q12: number; q13: number; q14: number; q15: number; q16: number;
