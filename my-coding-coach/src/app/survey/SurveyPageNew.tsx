@@ -120,6 +120,14 @@ export default function SurveyPageNew() {
         setSurveyPhase(phase);
     }, [phase, setSurveyPhase]);
 
+    // Update survey_type in form data when survey is selected
+    useEffect(() => {
+        if (selectedSurvey?.survey_type) {
+            setPostFormData(prev => ({ ...prev, survey_type: selectedSurvey.survey_type }));
+            setOverallFormData(prev => ({ ...prev, survey_type: selectedSurvey.survey_type }));
+        }
+    }, [selectedSurvey?.survey_type]);
+
     // Resume timer in navigation phase if returning to survey
     useEffect(() => {
         if (contextPhase === 'navigate' && isSurveyMode && contextSelectedSurvey && contextParticipantId) {
@@ -159,15 +167,15 @@ export default function SurveyPageNew() {
                 usedAiBefore: null,
                 aiToolsUsed: ''
             });
-            setPostFormData({
-                survey_type: selectedSurvey?.survey_type || 'none',
+            setPostFormData(prev => ({
+                survey_type: prev.survey_type || 'none',
                 fixedWithinTime: null,
                 difficulty: null,
                 helpfulUnderstand: null,
                 helpfulFix: null,
                 thoughtProcess: '',
                 feedbackReason: ''
-            });
+            }));
             setOverallFormData({
                 survey_type: selectedSurvey?.survey_type || 'none',
                 sus: { q7: 3, q8: 3, q9: 3, q10: 3, q11: 3, q12: 3, q13: 3, q14: 3, q15: 3, q16: 3 },
@@ -283,10 +291,18 @@ export default function SurveyPageNew() {
             return;
         }
 
+        // Validate survey_type before submission
+        const surveyType = postFormData.survey_type || selectedSurvey?.survey_type || 'none';
+        if (!surveyType || surveyType === 'none') {
+            toast.error('Survey type is missing. Please try again.');
+            return;
+        }
+
+
         try {
             await apiClient.submitPostTaskSurvey({
                 participant_id: preFormData.participantId,
-                survey_type: selectedSurvey?.survey_type || 'none',
+                survey_type: surveyType,
                 task_index: currentTask + 1,
                 finished_within_time: postFormData.fixedWithinTime,
                 difficult_to_fix: postFormData.difficulty,
@@ -296,16 +312,17 @@ export default function SurveyPageNew() {
                 feedback: postFormData.feedbackReason,
             });
 
-            // Reset post-task form
-            setPostFormData({
+
+            // Reset post-task form (preserve survey_type)
+            setPostFormData(prev => ({
                 fixedWithinTime: null,
                 difficulty: null,
                 helpfulUnderstand: null,
                 helpfulFix: null,
                 thoughtProcess: '',
                 feedbackReason: '',
-                survey_type: selectedSurvey?.survey_type || 'none'
-            });
+                survey_type: prev.survey_type // Preserve existing survey_type
+            }));
 
             if (currentTask < 3) {
                 const nextTaskIndex = currentTask + 1;
@@ -323,15 +340,22 @@ export default function SurveyPageNew() {
                 router.push('/');
             }
         } catch (error: any) {
+            console.error('Error submitting post-task survey:', error);
+            console.error('Error details:', {
+                message: error?.message,
+                response: error?.response?.data,
+                status: error?.response?.status,
+            });
+
             if (error?.surveyMode) {
                 setAuthExpired(true);
                 toast.error('Authentication expired. Survey progress saved locally. Please log in to continue.', {
                     duration: 6000
                 });
             } else {
-                toast.error('Failed to submit post-task survey');
+                const errorMsg = error?.response?.data?.detail || error?.message || 'Failed to submit post-task survey';
+                toast.error(errorMsg);
             }
-            console.error(error);
         }
     };
 
