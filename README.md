@@ -196,7 +196,7 @@ This platform is developed as part of a Master's thesis at the University of Ber
 
 **Program**: Master of Science in Informatics  
 **University**: University of Bergen, Norway  
-**Year**: 2024-2025  
+**Year**: 2025  
 **Research Area**: Educational Technology, AI in Education, Programming Education
 
 ---
