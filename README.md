@@ -184,9 +184,6 @@ npm install
 npm test
 ```
 
-### API Documentation
-- **Interactive Docs**: https://codeguide.live/api/docs
-
 ## 📄 Research Context
 
 This platform is developed as part of a Master's thesis at the University of Bergen, investigating:
