@@ -217,7 +217,7 @@ const LandingPage = () => {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-900">Why Coding Coach?</h2>
+            <h2 className="text-3xl font-bold text-gray-900">Why Code Guide?</h2>
             <p className="mt-2 text-lg text-gray-600">
               Go beyond simple error checking. Understand the 'why' behind your code.
             </p>
@@ -229,7 +229,7 @@ const LandingPage = () => {
               </div>
               <h3 className="mt-5 text-lg font-semibold text-gray-900">AI-Powered Analysis</h3>
               <p className="mt-2 text-base text-gray-600">
-                Receive in-depth feedback on code quality, style, and potential bugs from our advanced AI.
+                Receive in-depth feedback on code quality, style, and potential bugs from our AI.
               </p>
             </div>
             <div className="text-center p-6 border border-gray-200 rounded-lg">
@@ -284,7 +284,7 @@ const LandingPage = () => {
       <footer className="bg-white">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 md:flex md:items-center md:justify-between lg:px-8">
           <div className="flex justify-center space-x-6 md:order-2">
-            <p className="text-center text-base text-gray-500">&copy; {new Date().getFullYear()} Coding Coach. All rights reserved.</p>
+            <p className="text-center text-base text-gray-500">&copy; {new Date().getFullYear()} Code Guide. All rights reserved.</p>
           </div>
           <div className="mt-8 md:mt-0 md:order-1">
             <p className="text-center text-base text-gray-500">

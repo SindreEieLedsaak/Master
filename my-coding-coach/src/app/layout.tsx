@@ -23,6 +23,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Code Guide",
   description: "Code Guide",
+  icons: {
+    icon: "/duck-svgrepo-com.svg",
+  },
 };
 
 export default function RootLayout({

@@ -1,4 +1,4 @@
-# My Coding Coach
+# CodeGuide
 
 An AI-powered coding education platform that helps students learn programming through personalized tasks, real-time feedback, and intelligent assistance.
 
@@ -55,7 +55,7 @@ The project follows a microservices architecture with three main components:
 - **FastAPI** - Python API framework
 - **Python 3.11** - Core language
 - **Poetry** - Dependency management
-- **OpenAI GPT-4 Turbo** - AI-powered analysis and tutoring
+- **OpenAI GPT-4.1-mini** - AI-powered analysis and tutoring
 - **python-gitlab** - GitLab API client
 - **Authlib** - OAuth 2.0 implementation
 - **python-jose** - JWT token handling

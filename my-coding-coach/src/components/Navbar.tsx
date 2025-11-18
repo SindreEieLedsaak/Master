@@ -23,7 +23,7 @@ export default function Navbar() {
                         <div className="flex items-center">
                             <Code className="h-8 w-8 text-blue-600" />
                             <span className="ml-2 text-xl font-bold text-gray-900">
-                                Coding Coach
+                                Code Guide
                             </span>
                         </div>
                         <div className="flex items-center">
@@ -47,7 +47,7 @@ export default function Navbar() {
                     <div className="flex items-center">
                         <Code className="h-8 w-8 text-blue-600" />
                         <span className="ml-2 text-xl font-bold text-gray-900">
-                            Coding Coach
+                            Code Guide
                         </span>
                     </div>
                     <div className="flex items-center space-x-4">
