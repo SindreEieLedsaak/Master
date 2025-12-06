@@ -58,8 +58,6 @@ export default function AssistantChat({
                     // Create a unique session ID for this component instance
                     const timestamp = Date.now();
                     const newSessionId = `${sessionType}_${timestamp}`;
-
-
                     const result = await apiClient.createAssistantSession(newSessionId, systemPrompt);
                     setSessionId(result.session_id);
                 } catch (error) {
